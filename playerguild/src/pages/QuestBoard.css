@@ -1,0 +1,108 @@
+.board-hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.board-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-display);
+  font-size: 22px;
+  letter-spacing: 0.12em;
+}
+
+.board-title-icon {
+  color: var(--neon-green);
+}
+
+.board-subtitle {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* Button */
+.btn-post-quest {
+  padding: 8px 14px;
+  border: 1px solid var(--neon-green);
+  color: var(--neon-green);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  border-radius: 3px;
+  transition: 0.2s;
+}
+
+.btn-post-quest:hover {
+  background: rgba(0,255,157,0.1);
+}
+
+/* Controls */
+.board-controls {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 24px 0;
+}
+
+/* Search */
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  padding: 6px 10px;
+  border-radius: 3px;
+  flex: 1;
+}
+
+.search-input {
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  width: 100%;
+  font-family: var(--font-mono);
+}
+
+.search-input:focus {
+  outline: none;
+}
+
+/* Filters */
+.filter-tabs {
+  display: flex;
+  gap: 6px;
+}
+
+.filter-tab {
+  padding: 6px 10px;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.filter-tab--active {
+  color: var(--neon-green);
+  border-color: var(--neon-green);
+  background: rgba(0,255,157,0.08);
+}
+
+/* Empty */
+.board-empty {
+  text-align: center;
+  padding: 80px 20px;
+  color: var(--text-muted);
+}
+
+.empty-icon {
+  color: var(--neon-cyan);
+  opacity: 0.6;
+  margin-bottom: 10px;
+}
