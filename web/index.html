@@ -1,0 +1,1646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PlayerGuild — Blockchain Gaming Marketplace</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #080810;
+  --bg-card: #0e0e1a;
+  --bg-card2: #13131f;
+  --bg-input: #0a0a16;
+  --border: rgba(255,255,255,0.07);
+  --border-accent: rgba(120,90,255,0.35);
+  --purple: #7b5fff;
+  --purple-light: #9d80ff;
+  --purple-dim: rgba(123,95,255,0.15);
+  --purple-glow: rgba(123,95,255,0.25);
+  --teal: #00d4a8;
+  --teal-dim: rgba(0,212,168,0.12);
+  --amber: #f5a623;
+  --amber-dim: rgba(245,166,35,0.12);
+  --red: #ff4d6d;
+  --red-dim: rgba(255,77,109,0.12);
+  --text: #f0f0f8;
+  --text-2: #9898b0;
+  --text-3: #5c5c78;
+  --font-head: 'Syne', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --r: 10px;
+  --r-lg: 16px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.6;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── NAV ── */
+nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(8,8,16,0.85);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 32px;
+  display: flex;
+  align-items: center;
+  height: 60px;
+  gap: 32px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-head);
+  font-weight: 800;
+  font-size: 18px;
+  color: var(--text);
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.logo-icon {
+  width: 34px;
+  height: 34px;
+  background: var(--purple);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 800;
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+}
+
+.logo-icon::after {
+  content: '';
+  position: absolute;
+  top: -8px; right: -8px;
+  width: 20px; height: 20px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 50%;
+}
+
+.nav-links {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+}
+
+.nav-link {
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--text-2);
+  text-decoration: none;
+  padding: 5px 12px;
+  border-radius: 6px;
+  transition: all 0.2s;
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+.nav-link:hover, .nav-link.active {
+  color: var(--text);
+  background: rgba(255,255,255,0.06);
+}
+
+.nav-link.active { color: var(--purple-light); }
+
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.chain-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--teal);
+  background: var(--teal-dim);
+  border: 1px solid rgba(0,212,168,0.2);
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+.chain-dot {
+  width: 6px; height: 6px;
+  background: var(--teal);
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(0.8); }
+}
+
+.btn {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 7px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-2);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn:hover { color: var(--text); border-color: rgba(255,255,255,0.15); background: rgba(255,255,255,0.05); }
+
+.btn-primary {
+  background: var(--purple);
+  border-color: var(--purple);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: var(--purple-light);
+  border-color: var(--purple-light);
+  box-shadow: 0 0 20px var(--purple-glow);
+}
+
+/* ── PAGES ── */
+.page { display: none; animation: fadein 0.3s ease; }
+.page.active { display: block; }
+
+@keyframes fadein { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ── HERO ── */
+.hero {
+  position: relative;
+  padding: 72px 32px 56px;
+  overflow: hidden;
+}
+
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 800px 400px at 60% 0%, rgba(123,95,255,0.12) 0%, transparent 70%),
+    radial-gradient(ellipse 400px 300px at 10% 80%, rgba(0,212,168,0.06) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.hero-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+  background-size: 60px 60px;
+  mask-image: linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%);
+  pointer-events: none;
+}
+
+.hero-content { position: relative; max-width: 680px; }
+
+.hero-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--purple-light);
+  background: var(--purple-dim);
+  border: 1px solid var(--border-accent);
+  padding: 5px 12px;
+  border-radius: 20px;
+  margin-bottom: 20px;
+}
+
+.hero-title {
+  font-family: var(--font-head);
+  font-size: clamp(36px, 5vw, 56px);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -1px;
+  margin-bottom: 16px;
+}
+
+.hero-title span { color: var(--purple-light); }
+
+.hero-sub {
+  font-size: 16px;
+  color: var(--text-2);
+  line-height: 1.65;
+  margin-bottom: 32px;
+  max-width: 520px;
+}
+
+.search-wrap {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.search-input-wrap {
+  flex: 1;
+  position: relative;
+}
+
+.search-input-wrap svg {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-3);
+}
+
+.search-input {
+  width: 100%;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 12px 14px 12px 42px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.search-input::placeholder { color: var(--text-3); }
+.search-input:focus { border-color: var(--border-accent); }
+
+.filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.filter-chip {
+  font-size: 12px;
+  font-weight: 500;
+  padding: 5px 12px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  color: var(--text-2);
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: var(--font-body);
+}
+
+.filter-chip:hover { border-color: rgba(255,255,255,0.15); color: var(--text); }
+.filter-chip.active { border-color: var(--purple); color: var(--purple-light); background: var(--purple-dim); }
+
+/* ── SECTION ── */
+.section { padding: 40px 32px; }
+.section-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 20px; }
+.section-title { font-family: var(--font-head); font-size: 20px; font-weight: 700; }
+.section-link { font-size: 13px; color: var(--purple-light); cursor: pointer; }
+.section-link:hover { text-decoration: underline; }
+
+/* ── CARDS ── */
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+
+.listing-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.25s;
+  position: relative;
+}
+
+.listing-card:hover {
+  border-color: var(--border-accent);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.4), 0 0 0 1px var(--border-accent);
+}
+
+.card-img {
+  width: 100%;
+  height: 110px;
+  background: var(--bg-card2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.card-img-label {
+  font-family: var(--font-head);
+  font-size: 22px;
+  font-weight: 800;
+  color: rgba(255,255,255,0.12);
+  letter-spacing: -1px;
+  user-select: none;
+}
+
+.card-img-glow {
+  position: absolute;
+  width: 60px; height: 60px;
+  border-radius: 50%;
+  filter: blur(30px);
+  opacity: 0.5;
+}
+
+.card-body { padding: 12px 14px 14px; }
+.card-game { font-size: 10px; font-weight: 500; color: var(--text-3); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 3px; font-family: var(--font-mono); }
+.card-title { font-family: var(--font-head); font-size: 14px; font-weight: 700; margin-bottom: 3px; line-height: 1.25; }
+.card-desc { font-size: 12px; color: var(--text-2); margin-bottom: 10px; line-height: 1.4; }
+.card-footer { display: flex; align-items: center; justify-content: space-between; }
+.card-price { font-family: var(--font-head); font-size: 16px; font-weight: 700; color: var(--text); }
+.card-stars { font-size: 11px; color: var(--amber); }
+.card-reviews { font-size: 10px; color: var(--text-3); margin-left: 3px; }
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  padding: 3px 8px;
+  border-radius: 4px;
+  letter-spacing: .02em;
+}
+
+.badge-purple { background: var(--purple-dim); color: var(--purple-light); border: 1px solid var(--border-accent); }
+.badge-teal { background: var(--teal-dim); color: var(--teal); border: 1px solid rgba(0,212,168,0.2); }
+.badge-amber { background: var(--amber-dim); color: var(--amber); border: 1px solid rgba(245,166,35,0.2); }
+.badge-green { background: rgba(34,197,94,0.1); color: #4ade80; border: 1px solid rgba(34,197,94,0.2); }
+.badge-red { background: var(--red-dim); color: var(--red); border: 1px solid rgba(255,77,109,0.2); }
+.badge-gray { background: rgba(255,255,255,0.05); color: var(--text-3); border: 1px solid var(--border); }
+
+/* ── GAME TILES ── */
+.game-tile {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 16px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.game-tile:hover {
+  border-color: var(--border-accent);
+  background: var(--bg-card2);
+}
+
+.game-icon {
+  width: 44px; height: 44px;
+  border-radius: 10px;
+  margin: 0 auto 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-head);
+  font-size: 11px;
+  font-weight: 800;
+  color: #fff;
+}
+
+.game-name { font-size: 11px; font-weight: 500; color: var(--text-2); }
+
+/* ── LISTING DETAIL PAGE ── */
+.detail-layout {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 24px;
+  padding: 32px;
+  max-width: 1200px;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-3);
+  margin-bottom: 20px;
+  font-family: var(--font-mono);
+}
+
+.breadcrumb span { color: var(--text-2); cursor: pointer; }
+.breadcrumb span:hover { color: var(--purple-light); }
+
+.detail-images {
+  background: var(--bg-card2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  height: 280px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.detail-img-bg {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, rgba(123,95,255,0.1) 0%, transparent 70%);
+}
+
+.detail-img-text {
+  font-family: var(--font-head);
+  font-size: 48px;
+  font-weight: 800;
+  color: rgba(255,255,255,0.07);
+  position: relative;
+}
+
+.detail-title {
+  font-family: var(--font-head);
+  font-size: 26px;
+  font-weight: 800;
+  margin-bottom: 10px;
+  line-height: 1.15;
+}
+
+.detail-badges { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+
+.detail-desc {
+  font-size: 14px;
+  color: var(--text-2);
+  line-height: 1.7;
+  margin-bottom: 20px;
+  border-left: 2px solid var(--border-accent);
+  padding-left: 14px;
+}
+
+.detail-specs {
+  background: var(--bg-card2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.spec-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.spec-item {}
+.spec-label { font-size: 10px; color: var(--text-3); text-transform: uppercase; letter-spacing: .08em; font-family: var(--font-mono); margin-bottom: 2px; }
+.spec-val { font-size: 13px; font-weight: 500; color: var(--text); }
+
+.escrow-box {
+  background: var(--teal-dim);
+  border: 1px solid rgba(0,212,168,0.2);
+  border-radius: var(--r);
+  padding: 14px 16px;
+}
+
+.escrow-title { font-family: var(--font-mono); font-size: 11px; color: var(--teal); margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+.escrow-desc { font-size: 12px; color: rgba(0,212,168,0.7); line-height: 1.6; }
+
+/* ── SIDEBAR ── */
+.buy-sidebar { position: sticky; top: 80px; }
+
+.buy-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 20px;
+  margin-bottom: 14px;
+}
+
+.buy-price {
+  font-family: var(--font-head);
+  font-size: 32px;
+  font-weight: 800;
+  margin-bottom: 2px;
+}
+
+.buy-usd { font-size: 12px; color: var(--text-3); margin-bottom: 16px; font-family: var(--font-mono); }
+
+.btn-full { width: 100%; text-align: center; padding: 13px; font-size: 14px; border-radius: var(--r); margin-bottom: 8px; }
+.btn-outline-full { width: 100%; text-align: center; padding: 12px; font-size: 14px; border-radius: var(--r); border: 1px solid var(--border); background: transparent; color: var(--text-2); cursor: pointer; transition: all 0.2s; font-family: var(--font-body); }
+.btn-outline-full:hover { border-color: rgba(255,255,255,0.15); color: var(--text); }
+
+.seller-mini {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 16px;
+}
+
+.seller-mini-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+
+.avatar {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: var(--purple-dim);
+  border: 1px solid var(--border-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-head);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--purple-light);
+  flex-shrink: 0;
+}
+
+.seller-name { font-family: var(--font-head); font-size: 14px; font-weight: 700; }
+.seller-rating { font-size: 11px; color: var(--amber); }
+.seller-meta { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+
+.divider { height: 1px; background: var(--border); margin: 14px 0; }
+
+/* ── SELLER PROFILE ── */
+.profile-header {
+  background: var(--bg-card2);
+  border-bottom: 1px solid var(--border);
+  padding: 32px;
+}
+
+.profile-top { display: flex; align-items: flex-start; gap: 20px; }
+
+.avatar-lg {
+  width: 72px; height: 72px;
+  border-radius: 50%;
+  background: var(--purple-dim);
+  border: 2px solid var(--border-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-head);
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--purple-light);
+  flex-shrink: 0;
+  position: relative;
+}
+
+.verified-ring {
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 2px solid var(--teal);
+  opacity: 0.6;
+}
+
+.profile-name { font-family: var(--font-head); font-size: 28px; font-weight: 800; margin-bottom: 6px; }
+.profile-badges { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+.profile-meta { font-size: 13px; color: var(--text-3); }
+
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.stat-box {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 14px;
+  text-align: center;
+}
+
+.stat-val { font-family: var(--font-head); font-size: 22px; font-weight: 800; color: var(--text); }
+.stat-lbl { font-size: 11px; color: var(--text-3); margin-top: 2px; font-family: var(--font-mono); }
+
+/* ── TAB BAR ── */
+.tab-bar {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--border);
+  padding: 0 32px;
+  background: var(--bg);
+}
+
+.tab {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-3);
+  padding: 14px 18px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+  font-family: var(--font-body);
+  border: none;
+  background: none;
+}
+
+.tab:hover { color: var(--text-2); }
+.tab.active { color: var(--purple-light); border-bottom-color: var(--purple); }
+
+/* ── CHAT ── */
+.chat-layout {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  height: calc(100vh - 60px);
+}
+
+.chat-sidebar {
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+}
+
+.chat-sidebar-header {
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+  font-family: var(--font-head);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.convo-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.convo-item:hover { background: rgba(255,255,255,0.03); }
+.convo-item.active { background: var(--purple-dim); }
+
+.convo-info { flex: 1; min-width: 0; }
+.convo-name { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+.convo-preview { font-size: 11px; color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.convo-time { font-size: 10px; color: var(--text-3); flex-shrink: 0; font-family: var(--font-mono); }
+
+.chat-main { display: flex; flex-direction: column; }
+
+.chat-header {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--bg-card2);
+}
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.listing-ref {
+  background: var(--bg-card2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  font-size: 12px;
+  color: var(--text-2);
+}
+
+.listing-ref-title { font-weight: 600; color: var(--text); }
+
+.msg {
+  max-width: 65%;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 13.5px;
+  line-height: 1.55;
+}
+
+.msg-in {
+  background: var(--bg-card2);
+  border: 1px solid var(--border);
+  border-bottom-left-radius: 3px;
+  align-self: flex-start;
+  color: var(--text);
+}
+
+.msg-out {
+  background: var(--purple);
+  border-bottom-right-radius: 3px;
+  align-self: flex-end;
+  color: #fff;
+}
+
+.msg-time {
+  font-size: 10px;
+  color: var(--text-3);
+  margin-top: 3px;
+  font-family: var(--font-mono);
+}
+
+.msg-time-right { text-align: right; }
+
+.chat-input-area {
+  padding: 14px 20px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 8px;
+  background: var(--bg-card2);
+}
+
+.chat-input {
+  flex: 1;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 10px 14px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--text);
+  outline: none;
+  resize: none;
+  height: 42px;
+  transition: border-color 0.2s;
+}
+
+.chat-input:focus { border-color: var(--border-accent); }
+.chat-input::placeholder { color: var(--text-3); }
+
+/* ── DASHBOARD ── */
+.dash-layout { display: grid; grid-template-columns: 220px 1fr; min-height: calc(100vh - 60px); }
+
+.dash-sidebar {
+  border-right: 1px solid var(--border);
+  padding: 20px 12px;
+}
+
+.dash-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: var(--r);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-3);
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 2px;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+}
+
+.dash-nav-item:hover { color: var(--text-2); background: rgba(255,255,255,0.04); }
+.dash-nav-item.active { color: var(--purple-light); background: var(--purple-dim); }
+
+.dash-content { padding: 28px 32px; }
+
+.dash-title { font-family: var(--font-head); font-size: 22px; font-weight: 800; margin-bottom: 6px; }
+.dash-sub { font-size: 13px; color: var(--text-3); margin-bottom: 24px; }
+
+.metrics-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 28px; }
+
+.metric-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 18px;
+}
+
+.metric-label { font-size: 11px; color: var(--text-3); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 8px; }
+.metric-val { font-family: var(--font-head); font-size: 26px; font-weight: 800; margin-bottom: 4px; }
+.metric-change { font-size: 12px; }
+.metric-change.up { color: #4ade80; }
+.metric-change.down { color: var(--red); }
+
+.orders-table { width: 100%; border-collapse: collapse; }
+.orders-table th { font-size: 10px; color: var(--text-3); text-transform: uppercase; letter-spacing: .08em; font-family: var(--font-mono); padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); }
+.orders-table td { padding: 14px; font-size: 13px; border-bottom: 1px solid var(--border); color: var(--text-2); vertical-align: middle; }
+.orders-table tr:hover td { background: rgba(255,255,255,0.02); }
+.orders-table td:first-child { color: var(--text); font-weight: 500; }
+
+.rep-bar-wrap { margin-bottom: 6px; }
+.rep-bar-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-2); margin-bottom: 4px; }
+.rep-bar-track { height: 4px; background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden; }
+.rep-bar-fill { height: 100%; background: var(--amber); border-radius: 2px; }
+
+/* ── REPUTATION ── */
+.rep-big {
+  font-family: var(--font-head);
+  font-size: 56px;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.rep-stars { font-size: 20px; color: var(--amber); margin-bottom: 4px; }
+
+/* ── MISC ── */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.card-section { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 20px; }
+.card-section-title { font-family: var(--font-head); font-size: 15px; font-weight: 700; margin-bottom: 14px; }
+
+.order-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.order-row:last-child { border-bottom: none; }
+
+.order-icon {
+  width: 40px; height: 40px;
+  background: var(--bg-card2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  color: var(--text-3);
+  flex-shrink: 0;
+  font-family: var(--font-mono);
+}
+
+.order-info { flex: 1; }
+.order-title { font-size: 13px; font-weight: 600; color: var(--text); }
+.order-meta { font-size: 11px; color: var(--text-3); }
+.order-price { font-family: var(--font-head); font-size: 14px; font-weight: 700; }
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+
+/* ── ANIMATIONS ── */
+.card-enter { animation: cardEnter 0.35s ease both; }
+@keyframes cardEnter { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+.stagger > * { animation: cardEnter 0.35s ease both; }
+.stagger > *:nth-child(1) { animation-delay: 0.03s; }
+.stagger > *:nth-child(2) { animation-delay: 0.07s; }
+.stagger > *:nth-child(3) { animation-delay: 0.11s; }
+.stagger > *:nth-child(4) { animation-delay: 0.15s; }
+.stagger > *:nth-child(5) { animation-delay: 0.19s; }
+.stagger > *:nth-child(6) { animation-delay: 0.23s; }
+.stagger > *:nth-child(7) { animation-delay: 0.27s; }
+.stagger > *:nth-child(8) { animation-delay: 0.31s; }
+
+/* Active buy order banner */
+.active-order-banner {
+  background: var(--bg-card);
+  border: 1px solid var(--border-accent);
+  border-radius: var(--r-lg);
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.banner-icon { width: 44px; height: 44px; border-radius: var(--r); background: var(--bg-card2); display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--text-3); font-family: var(--font-mono); flex-shrink: 0; }
+.banner-info { flex: 1; }
+.banner-title { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
+.banner-meta { font-size: 12px; color: var(--text-3); }
+.banner-actions { display: flex; gap: 8px; }
+.btn-danger { background: var(--red-dim); border: 1px solid rgba(255,77,109,0.3); color: var(--red); }
+.btn-danger:hover { background: rgba(255,77,109,0.2); }
+</style>
+</head>
+<body>
+
+<!-- NAVIGATION -->
+<nav>
+  <a class="logo" href="#" onclick="showPage('home')">
+    <div class="logo-icon">PG</div>
+    PlayerGuild
+  </a>
+  <div class="nav-links">
+    <button class="nav-link active" id="nav-home" onclick="showPage('home')">Marketplace</button>
+    <button class="nav-link" id="nav-services" onclick="showPage('home')">Game Services</button>
+    <button class="nav-link" id="nav-sellers" onclick="showPage('sellers')">Sellers</button>
+    <button class="nav-link" id="nav-chat" onclick="showPage('chat')">Messages</button>
+    <button class="nav-link" id="nav-dashboard" onclick="showPage('seller-dash')">Dashboard</button>
+  </div>
+  <div class="nav-right">
+    <div class="chain-badge"><div class="chain-dot"></div>Blockchain verified</div>
+    <button class="btn" onclick="showPage('buyer-dash')">Buyer</button>
+    <button class="btn btn-primary">Sign up</button>
+  </div>
+</nav>
+
+<!-- ══ PAGE: HOME ══ -->
+<div class="page active" id="page-home">
+  <div class="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-grid"></div>
+    <div class="hero-content">
+      <div class="hero-eyebrow">
+        <span style="color:var(--teal);">●</span>
+        Blockchain-secured · Smart contract escrow
+      </div>
+      <h1 class="hero-title">
+        The guild for<br><span>serious gamers</span>
+      </h1>
+      <p class="hero-sub">Buy and sell game accounts, boosting services, and in-game assets across 15+ titles. Every deal protected by on-chain escrow.</p>
+      <div class="search-wrap">
+        <div class="search-input-wrap">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input class="search-input" placeholder="Search by game, rank, hero, or seller…" id="searchInput" oninput="filterListings()">
+        </div>
+        <button class="btn btn-primary" onclick="filterListings()">Search</button>
+      </div>
+      <div class="filter-row" id="filterRow">
+        <button class="filter-chip active" onclick="setFilter(this,'all')">All</button>
+        <button class="filter-chip" onclick="setFilter(this,'account')">Accounts</button>
+        <button class="filter-chip" onclick="setFilter(this,'boosting')">Boosting</button>
+        <button class="filter-chip" onclick="setFilter(this,'coaching')">Coaching</button>
+        <button class="filter-chip" onclick="setFilter(this,'items')">Items</button>
+        <button class="filter-chip" onclick="setFilter(this,'ml')">ML</button>
+        <button class="filter-chip" onclick="setFilter(this,'codm')">CODM</button>
+        <button class="filter-chip" onclick="setFilter(this,'genshin')">Genshin</button>
+        <button class="filter-chip" onclick="setFilter(this,'pubgm')">PUBGM</button>
+        <button class="filter-chip" onclick="setFilter(this,'wildrift')">Wild Rift</button>
+        <button class="filter-chip" onclick="setFilter(this,'hsr')">HSR</button>
+        <button class="filter-chip" onclick="setFilter(this,'coc')">COC</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">Featured listings</div>
+      <div class="section-link">View all →</div>
+    </div>
+    <div class="grid-4 stagger" id="listingsGrid"></div>
+  </div>
+
+  <div class="section" style="padding-top:0;">
+    <div class="section-header">
+      <div class="section-title">Browse by game</div>
+    </div>
+    <div class="grid-5 stagger" id="gamesGrid"></div>
+  </div>
+</div>
+
+<!-- ══ PAGE: LISTING DETAIL ══ -->
+<div class="page" id="page-detail">
+  <div class="detail-layout">
+    <div>
+      <div class="breadcrumb">
+        <span onclick="showPage('home')">Marketplace</span>
+        <span style="color:var(--text-3);">/</span>
+        <span id="detailGame">Game</span>
+        <span style="color:var(--text-3);">/</span>
+        <span style="color:var(--text-3);" id="detailBreadTitle">Listing</span>
+      </div>
+      <div class="detail-images">
+        <div class="detail-img-bg"></div>
+        <div class="detail-img-text" id="detailImgText">GAME</div>
+      </div>
+      <div class="detail-title" id="detailTitle">—</div>
+      <div class="detail-badges" id="detailBadges"></div>
+      <p class="detail-desc" id="detailDesc">—</p>
+      <div class="detail-specs">
+        <div style="font-size:11px;color:var(--text-3);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px;">Account specifications</div>
+        <div class="spec-grid" id="detailSpecs"></div>
+      </div>
+      <div class="escrow-box">
+        <div class="escrow-title"><div class="chain-dot"></div> Smart contract escrow</div>
+        <div class="escrow-desc">Your payment is locked in a blockchain smart contract. Funds are only released to the seller after you confirm successful delivery. Dispute resolution available within 48 hours via decentralized arbitration.</div>
+      </div>
+    </div>
+    <div>
+      <div class="buy-card buy-sidebar">
+        <div class="buy-price" id="detailPrice">—</div>
+        <div class="buy-usd" id="detailUSD">≈ $0 USD</div>
+        <button class="btn btn-primary btn-full" onclick="alert('Proceeding to secure checkout…')">Buy now — Escrow protected</button>
+        <button class="btn-outline-full" onclick="showPage('chat')">Message seller</button>
+        <div class="divider"></div>
+        <div style="font-size:11px;color:var(--text-3);text-align:center;">Payment secured by smart contract</div>
+      </div>
+      <div class="seller-mini">
+        <div class="seller-mini-row">
+          <div class="avatar" id="sellerAvatar">—</div>
+          <div>
+            <div class="seller-name" id="sellerName">—</div>
+            <div class="seller-rating" id="sellerStars">★★★★★</div>
+            <div class="seller-meta" id="sellerMeta">—</div>
+          </div>
+        </div>
+        <div class="chain-badge" style="font-size:10px;"><div class="chain-dot"></div>Identity verified on-chain</div>
+        <div class="divider"></div>
+        <button class="btn" style="width:100%;" onclick="showPage('sellers')">View full profile</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PAGE: SELLERS ══ -->
+<div class="page" id="page-sellers">
+  <div class="profile-header">
+    <div class="profile-top">
+      <div class="avatar-lg">
+        GX
+        <div class="verified-ring"></div>
+      </div>
+      <div style="flex:1;">
+        <div class="profile-name">GalaxySeller</div>
+        <div class="profile-badges">
+          <span class="badge badge-teal">Top Seller</span>
+          <span class="badge badge-purple">412 sales</span>
+          <div class="chain-badge" style="font-size:10px;"><div class="chain-dot"></div>On-chain verified</div>
+        </div>
+        <div class="profile-meta">Member since Jan 2022 &nbsp;·&nbsp; Response time &lt; 1 hr &nbsp;·&nbsp; Philippines</div>
+      </div>
+      <button class="btn btn-primary" onclick="showPage('chat')">Message</button>
+    </div>
+    <div class="stats-row">
+      <div class="stat-box"><div class="stat-val">412</div><div class="stat-lbl">Total sales</div></div>
+      <div class="stat-box"><div class="stat-val" style="color:var(--amber);">4.97</div><div class="stat-lbl">Avg rating</div></div>
+      <div class="stat-box"><div class="stat-val">99%</div><div class="stat-lbl">Positive</div></div>
+      <div class="stat-box"><div class="stat-val">&lt;1hr</div><div class="stat-lbl">Response</div></div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <button class="tab active">Active listings</button>
+    <button class="tab">Reviews</button>
+    <button class="tab">About</button>
+  </div>
+
+  <div class="section">
+    <div class="grid-3 stagger" id="sellerListings"></div>
+  </div>
+</div>
+
+<!-- ══ PAGE: CHAT ══ -->
+<div class="page" id="page-chat">
+  <div class="chat-layout">
+    <div class="chat-sidebar">
+      <div class="chat-sidebar-header">Messages</div>
+      <div class="convo-item active">
+        <div class="avatar" style="width:36px;height:36px;font-size:12px;">GX</div>
+        <div class="convo-info">
+          <div class="convo-name">GalaxySeller</div>
+          <div class="convo-preview">Sure, I'll include original email too</div>
+        </div>
+        <div class="convo-time">2m</div>
+      </div>
+      <div class="convo-item">
+        <div class="avatar" style="width:36px;height:36px;font-size:12px;background:rgba(0,212,168,0.1);border-color:rgba(0,212,168,0.3);color:var(--teal);">MK</div>
+        <div class="convo-info">
+          <div class="convo-name">MLSeller_MK</div>
+          <div class="convo-preview">Account ready for transfer now</div>
+        </div>
+        <div class="convo-time">1hr</div>
+      </div>
+      <div class="convo-item">
+        <div class="avatar" style="width:36px;height:36px;font-size:12px;background:rgba(245,166,35,0.1);border-color:rgba(245,166,35,0.3);color:var(--amber);">RZ</div>
+        <div class="convo-info">
+          <div class="convo-name">RaiderZX</div>
+          <div class="convo-preview">Is the COC TH16 still available?</div>
+        </div>
+        <div class="convo-time">3hr</div>
+      </div>
+    </div>
+    <div class="chat-main">
+      <div class="chat-header">
+        <div class="avatar">GX</div>
+        <div>
+          <div style="font-size:14px;font-weight:600;">GalaxySeller</div>
+          <div class="seller-rating" style="font-size:11px;">★★★★★ <span style="color:var(--text-3);">4.97</span></div>
+        </div>
+        <div style="margin-left:auto;">
+          <div class="chain-badge"><div class="chain-dot"></div>Tx #PG-8821 · In escrow</div>
+        </div>
+      </div>
+      <div class="chat-messages" id="chatMessages">
+        <div class="listing-ref">
+          <div style="font-size:10px;color:var(--text-3);font-family:var(--font-mono);">LINKED LISTING</div>
+          <div class="listing-ref-title">Genshin Impact AR60 — C6 Hutao + Furina</div>
+          <div class="badge badge-amber" style="margin-left:auto;">₱8,500</div>
+        </div>
+        <div>
+          <div class="msg msg-in">Hi! Does the account come with the original Gmail included?</div>
+          <div class="msg-time">10:22 AM</div>
+        </div>
+        <div>
+          <div class="msg msg-out">Yes! Original Gmail is included. I'll hand over the credentials once your payment clears the escrow contract.</div>
+          <div class="msg-time msg-time-right">10:24 AM</div>
+        </div>
+        <div>
+          <div class="msg msg-in">Perfect. Can you screenshot the character roster so I can verify before buying?</div>
+          <div class="msg-time">10:25 AM</div>
+        </div>
+        <div>
+          <div class="msg msg-out">Sure thing — uploading now 👍</div>
+          <div class="msg-time msg-time-right">10:26 AM</div>
+        </div>
+        <div>
+          <div class="msg msg-out" style="background:var(--bg-card2);border:1px solid var(--border);color:var(--text-2);font-size:12px;">[Screenshot attached — 3 files]</div>
+          <div class="msg-time msg-time-right">10:26 AM</div>
+        </div>
+        <div>
+          <div class="msg msg-in">Looks great! I'm going to proceed with the purchase.</div>
+          <div class="msg-time">10:28 AM</div>
+        </div>
+      </div>
+      <div class="chat-input-area">
+        <textarea class="chat-input" placeholder="Type a message…" id="chatTextarea" onkeydown="sendMessage(event)"></textarea>
+        <button class="btn" onclick="alert('Attach file')">Attach</button>
+        <button class="btn btn-primary" onclick="sendMessage({key:'Enter',ctrlKey:true})">Send</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PAGE: SELLER DASHBOARD ══ -->
+<div class="page" id="page-seller-dash">
+  <div class="dash-layout">
+    <div class="dash-sidebar">
+      <div style="padding:0 4px 16px;font-size:11px;color:var(--text-3);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.08em;">Seller</div>
+      <button class="dash-nav-item active">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Overview
+      </button>
+      <button class="dash-nav-item">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+        My listings
+      </button>
+      <button class="dash-nav-item">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        Active orders
+      </button>
+      <button class="dash-nav-item" onclick="showPage('chat')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Messages
+        <span class="badge badge-purple" style="margin-left:auto;font-size:9px;">3</span>
+      </button>
+      <button class="dash-nav-item">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        Earnings
+      </button>
+      <button class="dash-nav-item">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        Reputation
+      </button>
+      <button class="dash-nav-item">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+        Wallet
+      </button>
+      <div class="divider"></div>
+      <button class="dash-nav-item" onclick="showPage('buyer-dash')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Switch to Buyer
+      </button>
+    </div>
+    <div class="dash-content">
+      <div class="dash-title">Seller overview</div>
+      <div class="dash-sub">Welcome back, GalaxySeller · Last login 2 hours ago</div>
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-label">Total earned</div>
+          <div class="metric-val">₱41,200</div>
+          <div class="metric-change up">↑ 12% this month</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Active listings</div>
+          <div class="metric-val">8</div>
+          <div class="metric-change up">3 sold this week</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Pending orders</div>
+          <div class="metric-val">3</div>
+          <div class="metric-change" style="color:var(--amber);">2 awaiting delivery</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Reputation</div>
+          <div class="metric-val" style="color:var(--amber);">4.97</div>
+          <div class="metric-change up">Top 2% of sellers</div>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div>
+          <div class="card-section">
+            <div class="card-section-title">Recent orders</div>
+            <div class="order-row">
+              <div class="order-icon">Genshin</div>
+              <div class="order-info">
+                <div class="order-title">Genshin Impact AR60</div>
+                <div class="order-meta">Buyer: user_alpha · May 5</div>
+              </div>
+              <div style="text-align:right;">
+                <div class="order-price">₱8,500</div>
+                <span class="badge badge-amber">In escrow</span>
+              </div>
+            </div>
+            <div class="order-row">
+              <div class="order-icon">CODM</div>
+              <div class="order-info">
+                <div class="order-title">CODM Legendary Acc.</div>
+                <div class="order-meta">Buyer: gamer_ph99 · May 3</div>
+              </div>
+              <div style="text-align:right;">
+                <div class="order-price">₱1,500</div>
+                <span class="badge badge-green">Completed</span>
+              </div>
+            </div>
+            <div class="order-row">
+              <div class="order-icon">HSR</div>
+              <div class="order-info">
+                <div class="order-title">HSR TL65 Account</div>
+                <div class="order-meta">Buyer: starlightuser · May 4</div>
+              </div>
+              <div style="text-align:right;">
+                <div class="order-price">₱4,200</div>
+                <span class="badge badge-purple">Awaiting delivery</span>
+              </div>
+            </div>
+            <div class="order-row">
+              <div class="order-icon">ML</div>
+              <div class="order-info">
+                <div class="order-title">ML Mythical Glory</div>
+                <div class="order-meta">Buyer: blade_ph · Apr 30</div>
+              </div>
+              <div style="text-align:right;">
+                <div class="order-price">₱2,800</div>
+                <span class="badge badge-green">Completed</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="card-section">
+            <div class="card-section-title">Reputation breakdown</div>
+            <div style="display:flex;align-items:flex-end;gap:16px;margin-bottom:20px;">
+              <div>
+                <div class="rep-big">4.97</div>
+                <div class="rep-stars">★★★★★</div>
+                <div style="font-size:11px;color:var(--text-3);">412 reviews total</div>
+              </div>
+              <div class="chain-badge" style="margin-bottom:8px;"><div class="chain-dot"></div>On-chain record</div>
+            </div>
+            <div class="rep-bar-wrap">
+              <div class="rep-bar-label"><span>5 stars</span><span>389</span></div>
+              <div class="rep-bar-track"><div class="rep-bar-fill" style="width:94%;"></div></div>
+            </div>
+            <div class="rep-bar-wrap">
+              <div class="rep-bar-label"><span>4 stars</span><span>18</span></div>
+              <div class="rep-bar-track"><div class="rep-bar-fill" style="width:4%;background:var(--purple-light);"></div></div>
+            </div>
+            <div class="rep-bar-wrap">
+              <div class="rep-bar-label"><span>3 stars</span><span>3</span></div>
+              <div class="rep-bar-track"><div class="rep-bar-fill" style="width:1%;background:var(--text-3);"></div></div>
+            </div>
+            <div class="rep-bar-wrap">
+              <div class="rep-bar-label"><span>2 stars</span><span>2</span></div>
+              <div class="rep-bar-track"><div class="rep-bar-fill" style="width:0.5%;background:var(--red);"></div></div>
+            </div>
+            <div class="rep-bar-wrap">
+              <div class="rep-bar-label"><span>1 star</span><span>0</span></div>
+              <div class="rep-bar-track"><div class="rep-bar-fill" style="width:0%;background:var(--red);"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PAGE: BUYER DASHBOARD ══ -->
+<div class="page" id="page-buyer-dash">
+  <div class="dash-layout">
+    <div class="dash-sidebar">
+      <div style="padding:0 4px 16px;font-size:11px;color:var(--text-3);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.08em;">Buyer</div>
+      <button class="dash-nav-item active">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        My orders
+      </button>
+      <button class="dash-nav-item" onclick="showPage('chat')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Messages
+      </button>
+      <button class="dash-nav-item">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        Wishlist
+      </button>
+      <button class="dash-nav-item">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+        Wallet
+      </button>
+      <div class="divider"></div>
+      <button class="dash-nav-item" onclick="showPage('seller-dash')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+        Switch to Seller
+      </button>
+    </div>
+    <div class="dash-content">
+      <div class="dash-title">My purchases</div>
+      <div class="dash-sub">Manage your active orders and purchase history</div>
+
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-label">Total orders</div>
+          <div class="metric-val">7</div>
+          <div class="metric-change" style="color:var(--text-3);">Since Jan 2024</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Active</div>
+          <div class="metric-val">1</div>
+          <div class="metric-change" style="color:var(--amber);">In escrow</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Completed</div>
+          <div class="metric-val">6</div>
+          <div class="metric-change up">All successful</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Total spent</div>
+          <div class="metric-val">₱18,900</div>
+          <div class="metric-change up">Saved via PG</div>
+        </div>
+      </div>
+
+      <div class="card-section" style="margin-bottom:20px;">
+        <div class="card-section-title">Active order</div>
+        <div class="active-order-banner">
+          <div class="banner-icon">Genshin</div>
+          <div class="banner-info">
+            <div class="banner-title">Genshin Impact AR60 — C6 Hutao + Furina</div>
+            <div class="banner-meta">Seller: GalaxySeller &nbsp;·&nbsp; Order #PG-8821 &nbsp;·&nbsp; ₱8,500 &nbsp;·&nbsp; In blockchain escrow</div>
+          </div>
+          <div class="banner-actions">
+            <button class="btn" onclick="showPage('chat')">Chat</button>
+            <button class="btn btn-primary" onclick="alert('Delivery confirmed! Funds released to seller.')">Confirm delivery</button>
+            <button class="btn btn-danger">Dispute</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-section">
+        <div class="card-section-title">Order history</div>
+        <table class="orders-table">
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Seller</th>
+              <th>Date</th>
+              <th>Price</th>
+              <th>Rating</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>CODM Legendary Account</td>
+              <td>GalaxySeller</td>
+              <td style="font-family:var(--font-mono);font-size:11px;">Apr 28</td>
+              <td style="font-family:var(--font-head);font-weight:700;color:var(--text);">₱1,500</td>
+              <td style="color:var(--amber);">★★★★★</td>
+              <td><span class="badge badge-green">Completed</span></td>
+            </tr>
+            <tr>
+              <td>ML Mythical Glory Acc.</td>
+              <td>MLSeller_MK</td>
+              <td style="font-family:var(--font-mono);font-size:11px;">Apr 12</td>
+              <td style="font-family:var(--font-head);font-weight:700;color:var(--text);">₱2,800</td>
+              <td style="color:var(--amber);">★★★★☆</td>
+              <td><span class="badge badge-green">Completed</span></td>
+            </tr>
+            <tr>
+              <td>Wild Rift Challenger Boost</td>
+              <td>RaiderZX</td>
+              <td style="font-family:var(--font-mono);font-size:11px;">Mar 30</td>
+              <td style="font-family:var(--font-head);font-weight:700;color:var(--text);">₱3,200</td>
+              <td style="color:var(--amber);">★★★★★</td>
+              <td><span class="badge badge-green">Completed</span></td>
+            </tr>
+            <tr>
+              <td>PUBGM Conqueror Account</td>
+              <td>GalaxySeller</td>
+              <td style="font-family:var(--font-mono);font-size:11px;">Mar 15</td>
+              <td style="font-family:var(--font-head);font-weight:700;color:var(--text);">₱2,000</td>
+              <td style="color:var(--amber);">★★★★★</td>
+              <td><span class="badge badge-green">Completed</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const LISTINGS = [
+  { id:1, game:'Mobile Legends', tag:'ml', type:'account', title:'Mythical Glory Account', desc:'120+ heroes unlocked · Full skin collection · 3 Epic skins', price:2800, usd:50, rating:5, reviews:48, seller:'MLSeller_MK', sellerInit:'MK', sellerMeta:'98% positive · 210 sales', color:'#1A6FE8', specs:{Server:'Asia',Platform:'iOS/Android',Rank:'Mythical Glory',Heroes:'120+',Skins:'42 skins',Delivery:'0–6 hrs'} },
+  { id:2, game:'CODM', tag:'codm', type:'account', title:'Legendary Rank Account', desc:'Season 4 content · 15+ functional blueprints · Never banned', price:1500, usd:27, rating:4, reviews:22, seller:'GalaxySeller', sellerInit:'GX', sellerMeta:'99% positive · 412 sales', color:'#E84040', specs:{Server:'Global',Platform:'iOS/Android',Rank:'Legendary',Season:'S4',Blueprints:'15+',Delivery:'0–12 hrs'} },
+  { id:3, game:'Genshin Impact', tag:'genshin', type:'account', title:'AR60 — C6 Hutao + Furina', desc:'C6 Hutao · C6 Furina · C2 Neuvillette · 45,000 primogems saved', price:8500, usd:150, rating:5, reviews:91, seller:'GalaxySeller', sellerInit:'GX', sellerMeta:'99% positive · 412 sales', color:'#8B5CF6', specs:{Server:'Asia',Platform:'iOS/Android/PC',AR:'60 / WL8',Characters:'C6 Hutao, C6 Furina','Primogems':'45,000 saved',Delivery:'0–12 hrs'} },
+  { id:4, game:'Wild Rift', tag:'wildrift', type:'boosting', title:'Challenger Rank Boost', desc:'Guaranteed Challenger · 60+ champions · Veteran team', price:3200, usd:57, rating:4, reviews:15, seller:'RaiderZX', sellerInit:'RZ', sellerMeta:'96% positive · 88 sales', color:'#C49A1F', specs:{Server:'SEA',Game:'Wild Rift',Boost:'Challenger',Champions:'60+',Time:'3–7 days',Delivery:'In-game'} },
+  { id:5, game:'Honkai Star Rail', tag:'hsr', type:'account', title:'TL65 — E6 Firefly Account', desc:'E6 Firefly · Acheron · Boothill · 15,000 jade saved', price:4200, usd:74, rating:5, reviews:37, seller:'GalaxySeller', sellerInit:'GX', sellerMeta:'99% positive · 412 sales', color:'#A855F7', specs:{Server:'Asia',Platform:'iOS/Android/PC',TL:'65','5★ chars':'E6 Firefly, Acheron',Jade:'15,000 saved',Delivery:'0–12 hrs'} },
+  { id:6, game:'Clash of Clans', tag:'coc', type:'account', title:'Town Hall 16 Max Base', desc:'TH16 maxed · 6x Builder · 5,000+ gems · War veteran', price:5800, usd:103, rating:5, reviews:64, seller:'ClashKing_PH', sellerInit:'CK', sellerMeta:'97% positive · 155 sales', color:'#E07B2A', specs:{Platform:'iOS/Android',TH:'16 (Maxed)',Builders:'6x',Gems:'5,000+',League:'Legend',Delivery:'0–24 hrs'} },
+  { id:7, game:'PUBG Mobile', tag:'pubgm', type:'account', title:'Conqueror Season 28', desc:'Top 500 Conqueror · RP 100 · Glacier M416 + Kar98k', price:2000, usd:35, rating:4, reviews:19, seller:'RaiderZX', sellerInit:'RZ', sellerMeta:'96% positive · 88 sales', color:'#E84040', specs:{Server:'Asia',Season:'S28',Rank:'Conqueror Top 500',RP:'100',Skins:'Glacier set',Delivery:'0–6 hrs'} },
+  { id:8, game:'Zenless Zone Zero', tag:'zzz', type:'account', title:'IL60 — S-Rank Full Roster', desc:'All S-rank agents · 70 polychrome pull saved · Anniversary event unlocked', price:6500, usd:115, rating:5, reviews:28, seller:'GalaxySeller', sellerInit:'GX', sellerMeta:'99% positive · 412 sales', color:'#F97316', specs:{Server:'Asia',Platform:'iOS/Android/PC',IL:'60',Agents:'All S-rank',Polychrome:'70 pulls saved',Delivery:'0–12 hrs'} },
+];
+
+const GAMES = [
+  { name:'Mobile Legends', short:'ML', color:'#1A6FE8', tag:'ml' },
+  { name:'CODM', short:'CODM', color:'#E84040', tag:'codm' },
+  { name:'Genshin Impact', short:'GI', color:'#8B5CF6', tag:'genshin' },
+  { name:'Honkai: Star Rail', short:'HSR', color:'#A855F7', tag:'hsr' },
+  { name:'PUBG Mobile', short:'PUBG', color:'#E84040', tag:'pubgm' },
+  { name:'Clash of Clans', short:'COC', color:'#E07B2A', tag:'coc' },
+  { name:'Wild Rift', short:'WR', color:'#C49A1F', tag:'wildrift' },
+  { name:'Zenless Zone Zero', short:'ZZZ', color:'#F97316', tag:'zzz' },
+  { name:'Wuthering Waves', short:'WW', color:'#0F9E88', tag:'ww' },
+  { name:'Clash Royale', short:'CR', color:'#7C3AED', tag:'cr' },
+  { name:'Magic Chess', short:'MC', color:'#1A6FE8', tag:'mc' },
+  { name:'Dunk City Dynasty', short:'DCD', color:'#E84040', tag:'dcd' },
+  { name:'Angry Birds', short:'AB', color:'#EF4444', tag:'ab' },
+  { name:'Nikke: Goddess of Victory', short:'NTE', color:'#EC4899', tag:'nte' },
+  { name:'Steam Games', short:'STM', color:'#64748b', tag:'steam' },
+];
+
+let currentFilter = 'all';
+let currentSearch = '';
+
+function renderStars(r) {
+  return '★'.repeat(Math.round(r)) + '☆'.repeat(5 - Math.round(r));
+}
+
+function badgeForType(type) {
+  const map = { account:'badge-purple', boosting:'badge-amber', coaching:'badge-teal', items:'badge-gray' };
+  return map[type] || 'badge-gray';
+}
+
+function renderListings(list) {
+  const g = document.getElementById('listingsGrid');
+  if (!list.length) { g.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-3);">No listings found</div>'; return; }
+  g.innerHTML = list.map(l => `
+    <div class="listing-card card-enter" onclick="showDetail(${l.id})">
+      <div class="card-img">
+        <div class="card-img-glow" style="background:${l.color};"></div>
+        <div class="card-img-label">${l.short || l.game.substring(0,4).toUpperCase()}</div>
+      </div>
+      <div class="card-body">
+        <div class="card-game">${l.game}</div>
+        <div class="card-title">${l.title}</div>
+        <div class="card-desc">${l.desc}</div>
+        <div style="margin-bottom:8px;"><span class="badge ${badgeForType(l.type)}">${l.type.charAt(0).toUpperCase()+l.type.slice(1)}</span></div>
+        <div class="card-footer">
+          <div class="card-price">₱${l.price.toLocaleString()}</div>
+          <div><span class="card-stars">${renderStars(l.rating)}</span><span class="card-reviews">(${l.reviews})</span></div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderGames() {
+  document.getElementById('gamesGrid').innerHTML = GAMES.map(g => `
+    <div class="game-tile" onclick="setFilterByTag('${g.tag}')">
+      <div class="game-icon" style="background:${g.color}20;border:1px solid ${g.color}40;">
+        <span style="font-size:11px;font-weight:800;color:${g.color};">${g.short}</span>
+      </div>
+      <div class="game-name">${g.name}</div>
+    </div>
+  `).join('');
+}
+
+function setFilter(btn, tag) {
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  currentFilter = tag;
+  applyFilters();
+}
+
+function setFilterByTag(tag) {
+  currentFilter = tag;
+  document.querySelectorAll('.filter-chip').forEach(c => {
+    c.classList.toggle('active', c.textContent.toLowerCase().replace(/\s/g,'') === tag || (tag === 'all' && c.textContent === 'All'));
+  });
+  applyFilters();
+  document.getElementById('listingsGrid').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+function filterListings() {
+  currentSearch = document.getElementById('searchInput').value.toLowerCase();
+  applyFilters();
+}
+
+function applyFilters() {
+  let list = LISTINGS;
+  if (currentFilter !== 'all') {
+    list = list.filter(l => l.tag === currentFilter || l.type === currentFilter);
+  }
+  if (currentSearch) {
+    list = list.filter(l =>
+      l.title.toLowerCase().includes(currentSearch) ||
+      l.game.toLowerCase().includes(currentSearch) ||
+      l.desc.toLowerCase().includes(currentSearch) ||
+      l.seller.toLowerCase().includes(currentSearch)
+    );
+  }
+  renderListings(list);
+}
+
+function showDetail(id) {
+  const l = LISTINGS.find(x => x.id === id);
+  if (!l) return;
+  document.getElementById('detailGame').textContent = l.game;
+  document.getElementById('detailBreadTitle').textContent = l.title;
+  document.getElementById('detailImgText').textContent = (l.short || l.game.substring(0,5)).toUpperCase();
+  document.getElementById('detailTitle').textContent = l.title;
+  document.getElementById('detailDesc').textContent = l.desc;
+  document.getElementById('detailPrice').textContent = `₱${l.price.toLocaleString()}`;
+  document.getElementById('detailUSD').textContent = `≈ $${l.usd} USD · Escrow protected`;
+  document.getElementById('detailBadges').innerHTML = `
+    <span class="badge ${badgeForType(l.type)}">${l.type.charAt(0).toUpperCase()+l.type.slice(1)}</span>
+    <span class="badge badge-teal">Verified on-chain</span>
+    <span class="badge badge-green">In stock</span>
+  `;
+  document.getElementById('detailSpecs').innerHTML = Object.entries(l.specs).map(([k,v]) => `
+    <div class="spec-item"><div class="spec-label">${k}</div><div class="spec-val">${v}</div></div>
+  `).join('');
+  document.getElementById('sellerAvatar').textContent = l.sellerInit;
+  document.getElementById('sellerName').textContent = l.seller;
+  document.getElementById('sellerStars').textContent = renderStars(l.rating);
+  document.getElementById('sellerMeta').textContent = l.sellerMeta;
+  showPage('detail');
+}
+
+function renderSellerListings() {
+  const featured = LISTINGS.filter(l => l.seller === 'GalaxySeller');
+  document.getElementById('sellerListings').innerHTML = featured.map(l => `
+    <div class="listing-card card-enter" onclick="showDetail(${l.id})">
+      <div class="card-img">
+        <div class="card-img-glow" style="background:${l.color};"></div>
+        <div class="card-img-label">${l.game.substring(0,4).toUpperCase()}</div>
+      </div>
+      <div class="card-body">
+        <div class="card-game">${l.game}</div>
+        <div class="card-title">${l.title}</div>
+        <div class="card-desc">${l.desc}</div>
+        <div class="card-footer">
+          <div class="card-price">₱${l.price.toLocaleString()}</div>
+          <span class="badge badge-green">Active</span>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function sendMessage(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    const ta = document.getElementById('chatTextarea');
+    const txt = ta.value.trim();
+    if (!txt) return;
+    const msgs = document.getElementById('chatMessages');
+    const now = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+    const div = document.createElement('div');
+    div.innerHTML = `<div class="msg msg-out">${txt}</div><div class="msg-time msg-time-right">${now}</div>`;
+    msgs.appendChild(div);
+    ta.value = '';
+    msgs.scrollTop = msgs.scrollHeight;
+    e.preventDefault();
+  }
+}
+
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+  document.getElementById(`page-${name}`).classList.add('active');
+  const navMap = { home:'nav-home', detail:'nav-home', sellers:'nav-sellers', chat:'nav-chat', 'seller-dash':'nav-dashboard', 'buyer-dash':'nav-dashboard' };
+  const navEl = document.getElementById(navMap[name]);
+  if (navEl) navEl.classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+// Init
+renderListings(LISTINGS);
+renderGames();
+renderSellerListings();
+</script>
+</body>
+</html>

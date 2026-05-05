@@ -1,0 +1,166 @@
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+  margin-bottom: 20px;
+}
+
+.back-link:hover {
+  color: var(--neon-cyan);
+}
+
+.detail-layout {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 40px;
+}
+
+/* MAIN */
+.detail-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.detail-game {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--neon-cyan);
+}
+
+.detail-status {
+  display: flex;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 2px;
+  border: 1px solid;
+  font-size: 10px;
+}
+
+.detail-title {
+  font-family: var(--font-display);
+  font-size: 22px;
+  margin: 10px 0;
+}
+
+.detail-meta {
+  display: flex;
+  gap: 16px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.detail-description {
+  margin-top: 20px;
+}
+
+.section-title {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  margin-bottom: 6px;
+  color: var(--text-secondary);
+}
+
+.detail-tags {
+  margin-top: 10px;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* Timeline */
+.timeline {
+  margin-top: 10px;
+  border-left: 1px solid var(--border);
+  padding-left: 12px;
+}
+
+.tl-step {
+  margin-bottom: 12px;
+  position: relative;
+}
+
+.tl-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--border);
+  border-radius: 50%;
+  position: absolute;
+  left: -15px;
+  top: 5px;
+}
+
+.tl-step--done .tl-dot {
+  background: var(--neon-green);
+}
+
+.tl-label {
+  font-size: 12px;
+}
+
+.tl-sub {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+/* SIDEBAR */
+.reward-card,
+.actions-card,
+.contract-links {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  padding: 14px;
+  border-radius: 4px;
+  margin-bottom: 14px;
+}
+
+.reward-xlm {
+  font-size: 20px;
+  color: var(--neon-gold);
+}
+
+.reward-usd {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.action-btn {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 6px;
+  border-radius: 3px;
+  border: none;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.action-btn--primary {
+  background: var(--neon-green);
+  color: black;
+}
+
+.action-btn--success {
+  background: #22c55e;
+}
+
+.action-btn--danger {
+  background: #ef4444;
+}
+
+.chain-link {
+  display: block;
+  font-size: 11px;
+  margin-top: 6px;
+  color: var(--neon-cyan);
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .detail-layout {
+    grid-template-columns: 1fr;
+  }
+}
