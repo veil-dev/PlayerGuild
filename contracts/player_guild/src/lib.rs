@@ -1,16 +1,30 @@
 #![no_std]
 use soroban_sdk::{
     contract, contractimpl, contracttype, symbol_short,
-    Address, Env, Symbol, String,
+    token, Address, Env, String,
 };
 
-// ─── Storage Keys ───────────────────────────────────────────────────────────
+// ─── Testnet token addresses ─────────────────────────────────────────────────
+// XLM native asset wrapper on Soroban testnet
+const XLM_CONTRACT: &str  = "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC";
+// USDC issued by Circle on Stellar testnet
+const USDC_CONTRACT: &str = "CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA";
 
-/// Unique key for a quest stored as (quest_id → Quest)
+// ─── Storage Keys ────────────────────────────────────────────────────────────
+
 #[contracttype]
 pub enum DataKey {
-    Quest(u64),      // quest data by id
-    QuestCount,      // total number of quests ever created
+    Quest(u64),
+    QuestCount,
+}
+
+// ─── Token Type ──────────────────────────────────────────────────────────────
+
+#[contracttype]
+#[derive(Clone, PartialEq)]
+pub enum RewardToken {
+    Xlm,
+    Usdc,
 }
 
 // ─── Quest Status ────────────────────────────────────────────────────────────
@@ -18,11 +32,11 @@ pub enum DataKey {
 #[contracttype]
 #[derive(Clone, PartialEq)]
 pub enum QuestStatus {
-    Open,       // quest is available for hunters
-    Claimed,    // a hunter has accepted the quest
-    Completed,  // work submitted; awaiting giver approval
-    Settled,    // payment released; quest finalized
-    Cancelled,  // giver cancelled before a hunter claimed
+    Open,
+    Claimed,
+    Completed,
+    Settled,
+    Cancelled,
 }
 
 // ─── Quest Struct ────────────────────────────────────────────────────────────
@@ -31,10 +45,11 @@ pub enum QuestStatus {
 #[derive(Clone)]
 pub struct Quest {
     pub id: u64,
-    pub giver: Address,            // quest poster (employer)
-    pub hunter: Option<Address>,   // assigned hunter (freelancer)
-    pub title: String,             // short quest title
-    pub reward_xlm: i128,          // reward amount in stroops (1 XLM = 10_000_000)
+    pub giver: Address,
+    pub hunter: Option<Address>,
+    pub title: String,
+    pub reward_amount: i128,      // amount in base units (stroops for XLM, micro-USDC for USDC)
+    pub reward_token: RewardToken, // which token the reward is in
     pub status: QuestStatus,
 }
 
@@ -46,22 +61,26 @@ pub struct PlayerGuildContract;
 #[contractimpl]
 impl PlayerGuildContract {
 
-    /// post_quest – A quest giver posts a new job with a reward in XLM stroops.
-    /// The reward is locked into the contract via Stellar native asset transfer
-    /// (handled off-chain before calling; contract records the escrow intent).
+    /// post_quest – Giver posts a quest and transfers the reward into escrow.
+    /// reward_amount is in base units: stroops for XLM, micro-USDC for USDC.
     pub fn post_quest(
         env: Env,
         giver: Address,
         title: String,
-        reward_xlm: i128,
+        reward_amount: i128,
+        reward_token: RewardToken,
     ) -> u64 {
-        // Require the giver to authorise this call (Stellar auth model)
         giver.require_auth();
+        assert!(reward_amount > 0, "reward must be positive");
 
-        // Reward must be positive
-        assert!(reward_xlm > 0, "reward must be positive");
+        // Resolve the token contract address
+        let token_address = Self::token_address(&env, &reward_token);
+        let token_client = token::Client::new(&env, &token_address);
 
-        // Increment global quest counter
+        // Transfer reward from giver into this contract (escrow)
+        token_client.transfer(&giver, &env.current_contract_address(), &reward_amount);
+
+        // Increment quest counter
         let id: u64 = env.storage().instance().get(&DataKey::QuestCount).unwrap_or(0) + 1;
         env.storage().instance().set(&DataKey::QuestCount, &id);
 
@@ -70,24 +89,22 @@ impl PlayerGuildContract {
             giver,
             hunter: None,
             title,
-            reward_xlm,
+            reward_amount,
+            reward_token,
             status: QuestStatus::Open,
         };
 
-        // Persist quest in contract storage
         env.storage().persistent().set(&DataKey::Quest(id), &quest);
 
-        // Emit event so off-chain listeners can index the new quest
         env.events().publish(
             (symbol_short!("quest"), symbol_short!("posted")),
             id,
         );
 
-        id // return the new quest id to the caller
+        id
     }
 
-    /// claim_quest – A hunter (gig worker) accepts an open quest.
-    /// Only one hunter can claim; once claimed the quest is locked to them.
+    /// claim_quest – Hunter accepts an open quest.
     pub fn claim_quest(env: Env, hunter: Address, quest_id: u64) {
         hunter.require_auth();
 
@@ -97,10 +114,7 @@ impl PlayerGuildContract {
             .get(&DataKey::Quest(quest_id))
             .expect("quest not found");
 
-        // Guard: quest must still be open
         assert!(quest.status == QuestStatus::Open, "quest is not open");
-
-        // Guard: giver cannot claim their own quest
         assert!(quest.giver != hunter, "giver cannot be hunter");
 
         quest.hunter = Some(hunter.clone());
@@ -114,9 +128,8 @@ impl PlayerGuildContract {
         );
     }
 
-    /// complete_quest – The giver marks work as done and releases the XLM reward.
-    /// In a production build this would trigger a Stellar native transfer to the hunter.
-    /// Here we update state; the front-end/relayer executes the payment.
+    /// complete_quest – Giver approves completion; contract releases escrowed
+    /// reward directly to the hunter's wallet.
     pub fn complete_quest(env: Env, giver: Address, quest_id: u64) {
         giver.require_auth();
 
@@ -126,12 +139,17 @@ impl PlayerGuildContract {
             .get(&DataKey::Quest(quest_id))
             .expect("quest not found");
 
-        // Only the original giver may approve completion
         assert!(quest.giver == giver, "only giver can complete");
         assert!(quest.status == QuestStatus::Claimed, "quest must be claimed first");
 
-        quest.status = QuestStatus::Settled;
+        let hunter = quest.hunter.clone().expect("no hunter assigned");
 
+        // Release escrowed reward to the hunter
+        let token_address = Self::token_address(&env, &quest.reward_token);
+        let token_client = token::Client::new(&env, &token_address);
+        token_client.transfer(&env.current_contract_address(), &hunter, &quest.reward_amount);
+
+        quest.status = QuestStatus::Settled;
         env.storage().persistent().set(&DataKey::Quest(quest_id), &quest);
 
         env.events().publish(
@@ -140,7 +158,7 @@ impl PlayerGuildContract {
         );
     }
 
-    /// cancel_quest – The giver cancels an open quest (before any hunter claims it).
+    /// cancel_quest – Giver cancels an open quest and gets the reward refunded.
     pub fn cancel_quest(env: Env, giver: Address, quest_id: u64) {
         giver.require_auth();
 
@@ -153,6 +171,11 @@ impl PlayerGuildContract {
         assert!(quest.giver == giver, "only giver can cancel");
         assert!(quest.status == QuestStatus::Open, "can only cancel open quests");
 
+        // Refund escrowed reward back to giver
+        let token_address = Self::token_address(&env, &quest.reward_token);
+        let token_client = token::Client::new(&env, &token_address);
+        token_client.transfer(&env.current_contract_address(), &giver, &quest.reward_amount);
+
         quest.status = QuestStatus::Cancelled;
         env.storage().persistent().set(&DataKey::Quest(quest_id), &quest);
 
@@ -162,11 +185,20 @@ impl PlayerGuildContract {
         );
     }
 
-    /// get_quest – Read a quest by id (view function, no state change).
+    /// get_quest – Read a quest by id.
     pub fn get_quest(env: Env, quest_id: u64) -> Quest {
         env.storage()
             .persistent()
             .get(&DataKey::Quest(quest_id))
             .expect("quest not found")
+    }
+
+    // ─── Internal helpers ────────────────────────────────────────────────────
+
+    fn token_address(env: &Env, token: &RewardToken) -> Address {
+        match token {
+            RewardToken::Xlm  => Address::from_string(&env, &String::from_str(&env, XLM_CONTRACT)),
+            RewardToken::Usdc => Address::from_string(&env, &String::from_str(&env, USDC_CONTRACT)),
+        }
     }
 }

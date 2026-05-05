@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { WalletProvider } from "./contexts/WalletContext";
+import WalletPicker from "./contexts/WalletPicker";
 import Navbar from "./components/Navbar";
 import QuestBoard from "./pages/QuestBoard";
 import PostQuest from "./pages/PostQuest";
@@ -12,6 +13,7 @@ export default function App() {
   return (
     <WalletProvider>
       <BrowserRouter>
+        <WalletPicker />
         <div className="app-root">
           <Navbar />
           <main className="main-content">
@@ -27,10 +29,9 @@ export default function App() {
           position="bottom-right"
           toastOptions={{
             style: {
-              background: "#0d0d14",
-              color: "#e8e8f0",
-              border: "1px solid #2a2a3e",
-              fontFamily: "'Space Mono', monospace",
+              background: "#1A1033",
+              color: "#F3F0FF",
+              border: "1px solid rgba(124,58,237,0.3)",
               fontSize: "13px",
             },
           }}

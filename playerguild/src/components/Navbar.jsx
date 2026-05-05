@@ -1,4 +1,3 @@
-// src/components/Navbar.jsx
 import { Link, useLocation } from "react-router-dom";
 import { Sword, Shield, ScrollText, Wallet, ExternalLink } from "lucide-react";
 import { useWallet } from "../contexts/WalletContext";
@@ -57,7 +56,8 @@ export default function Navbar() {
         <span className="testnet-dot" />
         STELLAR TESTNET
         <span className="testnet-sep">·</span>
-        CONTRACT: <a href={LAB_URL} target="_blank" rel="noopener noreferrer" className="testnet-link">
+        CONTRACT:{" "}
+        <a href={LAB_URL} target="_blank" rel="noopener noreferrer" className="testnet-link">
           CDIJG6...4L7EL
         </a>
       </div>
