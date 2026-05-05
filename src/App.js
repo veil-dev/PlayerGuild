@@ -1,4 +1,3 @@
-// src/App.jsx
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { WalletProvider } from "./contexts/WalletContext";
@@ -6,7 +5,7 @@ import Navbar from "./components/Navbar";
 import QuestBoard from "./pages/QuestBoard";
 import PostQuest from "./pages/PostQuest";
 import QuestDetail from "./pages/QuestDetail";
-import MyQuests from "./pages/Myquests";
+import MyQuests from "./pages/MyQuests";
 import "./styles/global.css";
 
 export default function App() {
