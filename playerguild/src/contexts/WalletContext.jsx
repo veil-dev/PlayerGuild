@@ -71,6 +71,7 @@ export function WalletProvider({ children }) {
   const [connecting, setConnecting] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [profile, setProfile]       = useState(null);
+  const [walletReady, setWalletReady] = useState(false);
 
   useEffect(() => {
     try {
@@ -86,6 +87,7 @@ export function WalletProvider({ children }) {
         }
       }
     } catch {}
+    setWalletReady(true);
   }, []);
 
   const loginToBackend = useCallback(async (address, kit) => {
@@ -148,7 +150,7 @@ export function WalletProvider({ children }) {
 
   return (
     <WalletContext.Provider value={{
-      publicKey, walletId, connecting, profile,
+      publicKey, walletId, connecting, profile, walletReady,
       pickerOpen, setPickerOpen,
       connect, connectWallet, disconnect, signAndSubmit,
     }}>

@@ -14,7 +14,7 @@ import "./Profile.css";
 export default function Profile() {
   const { wallet } = useParams();
   const navigate   = useNavigate();
-  const { publicKey, profile: myProfile } = useWallet();
+  const { publicKey, profile: myProfile, walletReady } = useWallet();
 
   const targetWallet = wallet || publicKey;
   const isOwn        = targetWallet === publicKey;
@@ -30,6 +30,7 @@ export default function Profile() {
   });
 
   useEffect(() => {
+    if (!walletReady) return;
     if (!targetWallet) { navigate("/"); return; }
     setLoading(true);
     Promise.all([
@@ -50,7 +51,7 @@ export default function Profile() {
       })
       .catch(() => toast.error("Failed to load profile"))
       .finally(() => setLoading(false));
-  }, [targetWallet, navigate]);
+  }, [targetWallet, navigate, walletReady]);
 
   const handleSave = async () => {
     setSaving(true);

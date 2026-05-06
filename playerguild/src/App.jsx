@@ -7,6 +7,7 @@ import QuestBoard from "./pages/QuestBoard";
 import PostQuest from "./pages/PostQuest";
 import QuestDetail from "./pages/QuestDetail";
 import MyQuests from "./pages/MyQuests";
+import Profile from "./pages/Profile";
 import "./styles/global.css";
 
 export default function App() {
@@ -22,6 +23,8 @@ export default function App() {
               <Route path="/post" element={<PostQuest />} />
               <Route path="/quest/:id" element={<QuestDetail />} />
               <Route path="/my-quests" element={<MyQuests />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/profile/:wallet" element={<Profile />} />
             </Routes>
           </main>
         </div>

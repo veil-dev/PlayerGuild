@@ -166,8 +166,10 @@ app.post('/api/auth/verify', (req, res) => {
 // ─── USERS ────────────────────────────────────────────────────────────────────
 // GET /api/users/:wallet
 app.get('/api/users/:wallet', (req, res) => {
+  // Auto-create a bare user row if one doesn't exist yet.
+  // This handles wallets that connected but whose auth/verify signing was skipped or failed.
+  db.prepare(`INSERT OR IGNORE INTO users (wallet_address) VALUES (?)`).run(req.params.wallet);
   const user = db.prepare('SELECT * FROM users WHERE wallet_address = ?').get(req.params.wallet);
-  if (!user) return res.status(404).json({ error: 'User not found' });
 
   const stats = db.prepare(`
     SELECT
