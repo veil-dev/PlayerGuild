@@ -5,6 +5,8 @@ import { Sword, Info, Lock, ChevronRight } from "lucide-react";
 import toast from "react-hot-toast";
 import { useWallet } from "../contexts/WalletContext";
 import { useQuestStore } from "../contexts/QuestStore";
+import TokenSelector from "../components/TokenSelector";
+import { TOKENS } from "../utils/stellar";
 import "./PostQuest.css";
 
 const GAMES = [
@@ -12,6 +14,9 @@ const GAMES = [
   "Arena of Valor", "Wild Rift", "Honkai: Star Rail", "PUBG Mobile",
   "Valorant", "Dota 2", "Other",
 ];
+
+// Rough USD estimates per token
+const USD_RATES = { XLM: 0.11, USDC: 1.00 };
 
 export default function PostQuest() {
   const navigate = useNavigate();
@@ -25,9 +30,14 @@ export default function PostQuest() {
     game: "",
     tags: "",
   });
+  const [rewardToken, setRewardToken] = useState("XLM");
 
   const set = (field) => (e) =>
     setForm((f) => ({ ...f, [field]: e.target.value }));
+
+  const usdEst = form.reward
+    ? (parseFloat(form.reward) * (USD_RATES[rewardToken] ?? 1)).toFixed(2)
+    : null;
 
   const handleSubmit = async () => {
     if (!publicKey) {
@@ -49,7 +59,7 @@ export default function PostQuest() {
         .map((t) => t.trim().toLowerCase())
         .filter(Boolean);
 
-      await postQuest({ ...form, tags, giverKey: publicKey });
+      await postQuest({ ...form, tags, rewardToken, giverKey: publicKey });
       toast.success("Quest posted! Reward locked in escrow.");
       navigate("/");
     } catch (err) {
@@ -67,7 +77,9 @@ export default function PostQuest() {
             <Sword size={18} className="post-header-icon" />
             <div>
               <h1 className="post-title">Post a Quest</h1>
-              <p className="post-subtitle">Your XLM reward will be locked in Soroban escrow</p>
+              <p className="post-subtitle">
+                Your {TOKENS[rewardToken]?.label ?? rewardToken} reward will be locked in Soroban escrow
+              </p>
             </div>
           </div>
 
@@ -104,9 +116,20 @@ export default function PostQuest() {
 
           <div className="form-group">
             <label className="form-label">
-              Reward (XLM) <span className="req">*</span>
+              Reward <span className="req">*</span>
               <span className="label-sub">Will be locked on-chain</span>
             </label>
+
+            {/* Token picker */}
+            <div style={{ marginBottom: 10 }}>
+              <TokenSelector
+                value={rewardToken}
+                onChange={setRewardToken}
+                disabled={loading}
+              />
+            </div>
+
+            {/* Amount input */}
             <div className="reward-input-wrap">
               <input
                 className="form-input reward-input"
@@ -117,11 +140,12 @@ export default function PostQuest() {
                 value={form.reward}
                 onChange={set("reward")}
               />
-              <span className="reward-currency">XLM</span>
+              <span className="reward-currency">{TOKENS[rewardToken]?.label ?? rewardToken}</span>
             </div>
-            {form.reward && (
+
+            {usdEst && (
               <span className="form-hint usd-est">
-                ≈ ${(parseFloat(form.reward) * 0.11).toFixed(2)} USD (est.)
+                ≈ ${usdEst} USD (est.)
               </span>
             )}
           </div>
@@ -175,7 +199,7 @@ export default function PostQuest() {
                 <span className="how-num">01</span>
                 <div>
                   <strong>Post &amp; Lock</strong>
-                  <p>Your XLM reward is locked in the Soroban escrow contract on Stellar testnet.</p>
+                  <p>Your reward is locked in the Soroban escrow contract on Stellar testnet.</p>
                 </div>
               </li>
               <li>
@@ -196,10 +220,30 @@ export default function PostQuest() {
                 <span className="how-num">04</span>
                 <div>
                   <strong>You Release Payment</strong>
-                  <p>You approve on-chain. XLM is instantly transferred to the hunter.</p>
+                  <p>You approve on-chain. Tokens are instantly transferred to the hunter.</p>
                 </div>
               </li>
             </ol>
+          </div>
+
+          <div className="info-card" style={{ marginTop: 12 }}>
+            <div className="info-card-title">
+              <Info size={14} />
+              Supported Tokens
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 8 }}>
+              {Object.values(TOKENS).map((t) => (
+                <div key={t.id} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span style={{ fontSize: 16 }}>{t.icon}</span>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary, #F3F0FF)" }}>
+                      {t.label}
+                    </div>
+                    <div style={{ fontSize: 11, color: "var(--text-muted, #6B7280)" }}>{t.name}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
 
           <div className="contract-card">

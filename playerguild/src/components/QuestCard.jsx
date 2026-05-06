@@ -1,12 +1,13 @@
 // src/components/QuestCard.jsx
 import { Link } from "react-router-dom";
-import { Coins, Clock, User, ChevronRight, Sword } from "lucide-react";
-import { questStatusLabel, questStatusColor, shortenAddress } from "../utils/stellar";
+import { Coins, Clock, User, ChevronRight } from "lucide-react";
+import { questStatusLabel, questStatusColor, shortenAddress, TOKENS } from "../utils/stellar";
 import "./QuestCard.css";
 
 export default function QuestCard({ quest, delay = 0 }) {
   const statusColor = questStatusColor[quest.status] || "#888";
-  const timeAgo = getTimeAgo(quest.createdAt);
+  const timeAgo     = getTimeAgo(quest.createdAt);
+  const token       = TOKENS[quest.rewardToken] ?? TOKENS.XLM;
 
   return (
     <Link
@@ -21,7 +22,14 @@ export default function QuestCard({ quest, delay = 0 }) {
         {/* Header */}
         <div className="quest-card-header">
           <span className="quest-game">{quest.game}</span>
-          <div className="quest-status-pill" style={{ color: statusColor, borderColor: `${statusColor}33`, background: `${statusColor}0d` }}>
+          <div
+            className="quest-status-pill"
+            style={{
+              color: statusColor,
+              borderColor: `${statusColor}33`,
+              background: `${statusColor}0d`,
+            }}
+          >
             <span className="status-dot" style={{ background: statusColor }} />
             {questStatusLabel[quest.status]}
           </div>
@@ -47,7 +55,9 @@ export default function QuestCard({ quest, delay = 0 }) {
           <div className="quest-meta-items">
             <span className="quest-meta-item">
               <Coins size={12} />
-              <strong className="reward-amount">{quest.reward} XLM</strong>
+              <strong className="reward-amount">
+                {token.icon} {quest.reward} {token.label}
+              </strong>
             </span>
             <span className="quest-meta-item">
               <User size={12} />
@@ -67,8 +77,8 @@ export default function QuestCard({ quest, delay = 0 }) {
 
 function getTimeAgo(ts) {
   const diff = Date.now() - ts;
-  if (diff < 60000) return "just now";
-  if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
+  if (diff < 60000)    return "just now";
+  if (diff < 3600000)  return `${Math.floor(diff / 60000)}m ago`;
   if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
   return `${Math.floor(diff / 86400000)}d ago`;
 }
