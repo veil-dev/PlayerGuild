@@ -1,5 +1,5 @@
 // src/pages/QuestDetail.jsx
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import {
   ArrowLeft, Coins, User, Clock, Shield, CheckCircle,
   XCircle, ExternalLink, Sword,
@@ -15,7 +15,6 @@ import "./QuestDetail.css";
 
 export default function QuestDetail() {
   const { id } = useParams();
-  const navigate = useNavigate();
   const { publicKey, connect } = useWallet();
   const { quests, claimQuest, completeQuest, cancelQuest, loading } = useQuestStore();
 
@@ -50,7 +49,7 @@ export default function QuestDetail() {
   const handleComplete = async () => {
     try {
       await completeQuest(quest.id);
-      toast.success(`${quest.reward} XLM released to the hunter!`);
+      toast.success(`${quest.reward} USDC released to the hunter via XLM escrow!`);
     } catch (e) { toast.error("Failed to release payment"); }
   };
 
@@ -117,7 +116,7 @@ export default function QuestDetail() {
                 sub={quest.status === "completed" ? "Verified by giver" : "Pending"} />
               <TlStep done={quest.status === "completed"}
                 label="Payment Released"
-                sub={quest.status === "completed" ? `${quest.reward} XLM sent on-chain` : "Held in escrow"} />
+                sub={quest.status === "completed" ? `${quest.reward} USDC sent on-chain via XLM escrow` : "Held in XLM escrow"} />
             </div>
           </div>
         </div>
@@ -130,11 +129,11 @@ export default function QuestDetail() {
               <Coins size={14} />
               Quest Reward
             </div>
-            <div className="reward-xlm">{quest.reward} <span>XLM</span></div>
-            <div className="reward-usd">≈ ${(parseFloat(quest.reward) * 0.11).toFixed(2)} USD</div>
+            <div className="reward-value">{quest.reward} <span>USDC</span></div>
+            <div className="reward-usd">XLM escrow on Stellar</div>
             <div className="reward-note">
               <Shield size={11} />
-              Locked in Soroban escrow
+              Locked in Soroban escrow (XLM)
             </div>
           </div>
 

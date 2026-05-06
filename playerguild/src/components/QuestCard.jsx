@@ -1,6 +1,6 @@
 // src/components/QuestCard.jsx
 import { Link } from "react-router-dom";
-import { Coins, Clock, User, ChevronRight, Sword } from "lucide-react";
+import { Coins, Clock, User, ChevronRight } from "lucide-react";
 import { questStatusLabel, questStatusColor, shortenAddress } from "../utils/stellar";
 import "./QuestCard.css";
 
@@ -47,7 +47,8 @@ export default function QuestCard({ quest, delay = 0 }) {
           <div className="quest-meta-items">
             <span className="quest-meta-item">
               <Coins size={12} />
-              <strong className="reward-amount">{quest.reward} XLM</strong>
+              <strong className="reward-amount">{quest.reward} USDC</strong>
+              <span className="reward-rail">XLM escrow</span>
             </span>
             <span className="quest-meta-item">
               <User size={12} />

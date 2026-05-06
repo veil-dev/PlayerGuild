@@ -5,13 +5,8 @@ import { Sword, Info, Lock, ChevronRight } from "lucide-react";
 import toast from "react-hot-toast";
 import { useWallet } from "../contexts/WalletContext";
 import { useQuestStore } from "../contexts/QuestStore";
+import { GAMES } from "../utils/games";
 import "./PostQuest.css";
-
-const GAMES = [
-  "Ragnarok M", "Mobile Legends", "Genshin Impact", "Lost Ark",
-  "Arena of Valor", "Wild Rift", "Honkai: Star Rail", "PUBG Mobile",
-  "Valorant", "Dota 2", "Other",
-];
 
 export default function PostQuest() {
   const navigate = useNavigate();
@@ -67,7 +62,7 @@ export default function PostQuest() {
             <Sword size={18} className="post-header-icon" />
             <div>
               <h1 className="post-title">Post a Quest</h1>
-              <p className="post-subtitle">Your XLM reward will be locked in Soroban escrow</p>
+              <p className="post-subtitle">Your USDC reward will be locked in Soroban escrow on Stellar (XLM)</p>
             </div>
           </div>
 
@@ -104,8 +99,8 @@ export default function PostQuest() {
 
           <div className="form-group">
             <label className="form-label">
-              Reward (XLM) <span className="req">*</span>
-              <span className="label-sub">Will be locked on-chain</span>
+              Reward (USDC) <span className="req">*</span>
+              <span className="label-sub">XLM escrow on-chain</span>
             </label>
             <div className="reward-input-wrap">
               <input
@@ -117,11 +112,11 @@ export default function PostQuest() {
                 value={form.reward}
                 onChange={set("reward")}
               />
-              <span className="reward-currency">XLM</span>
+              <span className="reward-currency">USDC</span>
             </div>
             {form.reward && (
               <span className="form-hint usd-est">
-                ≈ ${(parseFloat(form.reward) * 0.11).toFixed(2)} USD (est.)
+                XLM escrow rail on Stellar
               </span>
             )}
           </div>
@@ -130,7 +125,7 @@ export default function PostQuest() {
             <label className="form-label">Tags <span className="opt">(optional)</span></label>
             <input
               className="form-input"
-              placeholder="carry, boss, ranked  —  comma separated"
+              placeholder="carry, boss, ranked - comma separated"
               value={form.tags}
               onChange={set("tags")}
             />
@@ -175,7 +170,7 @@ export default function PostQuest() {
                 <span className="how-num">01</span>
                 <div>
                   <strong>Post &amp; Lock</strong>
-                  <p>Your XLM reward is locked in the Soroban escrow contract on Stellar testnet.</p>
+                  <p>Your USDC reward is locked in the Soroban escrow contract on Stellar testnet using the XLM escrow rail.</p>
                 </div>
               </li>
               <li>
@@ -196,7 +191,7 @@ export default function PostQuest() {
                 <span className="how-num">04</span>
                 <div>
                   <strong>You Release Payment</strong>
-                  <p>You approve on-chain. XLM is instantly transferred to the hunter.</p>
+                  <p>You approve on-chain. USDC is instantly transferred to the hunter through Stellar/XLM escrow.</p>
                 </div>
               </li>
             </ol>
@@ -205,7 +200,7 @@ export default function PostQuest() {
           <div className="contract-card">
             <div className="contract-label">Live Contract</div>
             <div className="contract-addr">CDIJG6...4L7EL</div>
-            <div className="contract-net">Stellar Testnet · Soroban</div>
+            <div className="contract-net">Stellar Testnet / Soroban</div>
           </div>
         </div>
       </div>

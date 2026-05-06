@@ -1,5 +1,5 @@
 // src/contexts/QuestStore.js
-// Zustand store — manages quest state locally and syncs with contract events
+// Zustand store - manages quest state locally and syncs with contract events
 import { create } from "zustand";
 
 // Seed data that mirrors what a real contract fetch would return
@@ -19,7 +19,7 @@ const SEED_QUESTS = [
   },
   {
     id: 2,
-    title: "Gold farming run — 3 hrs in Lost Ark",
+    title: "Gold farming run - 3 hrs in Lost Ark",
     description:
       "Looking for someone to farm gold with me in Chaos Dungeons. 3-hour session, split the proceeds.",
     reward: "3.50",
@@ -32,7 +32,7 @@ const SEED_QUESTS = [
   },
   {
     id: 3,
-    title: "Rank push to Diamond — Mobile Legends",
+    title: "Rank push to Diamond - Mobile Legends",
     description:
       "Need a Diamond+ support main to duo queue with me this weekend. 10 games minimum.",
     reward: "8.00",
@@ -45,7 +45,7 @@ const SEED_QUESTS = [
   },
   {
     id: 4,
-    title: "Arena of Valor — 5v5 coaching session",
+    title: "Arena of Valor - 5v5 coaching session",
     description:
       "I want a 1-hour review of my replays + live coaching game. Must be Master tier or above.",
     reward: "12.00",
@@ -58,7 +58,7 @@ const SEED_QUESTS = [
   },
   {
     id: 5,
-    title: "Genshin Impact — Spiral Abyss floor 12 clear",
+    title: "Genshin Impact - Spiral Abyss floor 12 clear",
     description:
       "Need a co-op partner with strong DPS to help clear Floor 12-3. I have healer covered.",
     reward: "2.00",
