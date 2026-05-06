@@ -13,8 +13,8 @@ import {
   LobstrModule,
 } from "@creit.tech/stellar-wallets-kit";
 import { shortenAddress } from "../utils/stellar";
+import { api, getToken, clearToken } from "../utils/api";
 
-// ─── Kit singleton ────────────────────────────────────────────────────────────
 let _kit = null;
 function getKit(walletId) {
   if (!_kit) {
@@ -32,7 +32,6 @@ function getKit(walletId) {
   return _kit;
 }
 
-// ─── Wallet metadata (consumed by WalletPicker) ───────────────────────────────
 export const SUPPORTED_WALLETS = [
   {
     id: FREIGHTER_ID,
@@ -64,7 +63,6 @@ export const SUPPORTED_WALLETS = [
   },
 ];
 
-// ─── Context ──────────────────────────────────────────────────────────────────
 const WalletContext = createContext(null);
 
 export function WalletProvider({ children }) {
@@ -72,22 +70,41 @@ export function WalletProvider({ children }) {
   const [walletId, setWalletId]     = useState(null);
   const [connecting, setConnecting] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [profile, setProfile]       = useState(null);
 
-  // Restore persisted session on mount
   useEffect(() => {
     try {
       const saved = localStorage.getItem("pg_wallet");
       if (saved) {
         const { publicKey: pk, walletId: wid } = JSON.parse(saved);
-        if (pk && wid) { setPublicKey(pk); setWalletId(wid); }
+        if (pk && wid) {
+          setPublicKey(pk);
+          setWalletId(wid);
+          if (getToken()) {
+            api.getUser(pk).then(setProfile).catch(() => {});
+          }
+        }
       }
     } catch {}
   }, []);
 
-  // Opens the picker modal — this is what buttons call
+  const loginToBackend = useCallback(async (address, kit) => {
+    try {
+      const { challenge } = await api.getChallenge(address);
+      const { signedTxXdr } = await kit.signTransaction(challenge, {
+        address,
+        networkPassphrase: "Test SDF Network ; September 2015",
+      });
+      await api.verify(address, challenge, signedTxXdr);
+      const userProfile = await api.getUser(address);
+      setProfile(userProfile);
+    } catch {
+      // non-fatal — wallet still works for on-chain ops
+    }
+  }, []);
+
   const connect = useCallback(() => setPickerOpen(true), []);
 
-  // Called by WalletPicker once the user selects a wallet
   const connectWallet = useCallback(async (selectedWalletId) => {
     setConnecting(true);
     try {
@@ -99,6 +116,7 @@ export function WalletProvider({ children }) {
       setPickerOpen(false);
       localStorage.setItem("pg_wallet", JSON.stringify({ publicKey: address, walletId: selectedWalletId }));
       toast.success(`Connected: ${shortenAddress(address)}`);
+      loginToBackend(address, kit);
       return address;
     } catch (err) {
       toast.error(err?.message ?? "Failed to connect wallet");
@@ -106,12 +124,14 @@ export function WalletProvider({ children }) {
     } finally {
       setConnecting(false);
     }
-  }, []);
+  }, [loginToBackend]);
 
   const disconnect = useCallback(() => {
     setPublicKey(null);
     setWalletId(null);
+    setProfile(null);
     _kit = null;
+    clearToken();
     localStorage.removeItem("pg_wallet");
     toast("Wallet disconnected", { icon: "👋" });
   }, []);
@@ -128,7 +148,7 @@ export function WalletProvider({ children }) {
 
   return (
     <WalletContext.Provider value={{
-      publicKey, walletId, connecting,
+      publicKey, walletId, connecting, profile,
       pickerOpen, setPickerOpen,
       connect, connectWallet, disconnect, signAndSubmit,
     }}>

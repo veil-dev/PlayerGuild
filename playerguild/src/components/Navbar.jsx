@@ -1,45 +1,46 @@
 import { Link, useLocation } from "react-router-dom";
-import { Sword, Shield, ScrollText, Wallet, ExternalLink } from "lucide-react";
+import { Sword, Shield, ScrollText, Wallet, ExternalLink, User } from "lucide-react";
 import { useWallet } from "../contexts/WalletContext";
 import { shortenAddress, LAB_URL } from "../utils/stellar";
 import "./Navbar.css";
 
 export default function Navbar() {
-  const { publicKey, connecting, connect, disconnect } = useWallet();
+  const { publicKey, connecting, connect, disconnect, profile } = useWallet();
   const { pathname } = useLocation();
 
   return (
     <nav className="navbar">
       <div className="navbar-inner">
-        {/* Logo */}
         <Link to="/" className="navbar-logo">
           <Sword size={18} className="logo-icon" />
           <span className="logo-text">PLAYER<span className="logo-accent">GUILD</span></span>
         </Link>
 
-        {/* Nav links */}
         <div className="navbar-links">
-          <NavLink to="/" active={pathname === "/"} icon={<ScrollText size={14} />} label="Quest Board" />
-          <NavLink to="/post" active={pathname === "/post"} icon={<Sword size={14} />} label="Post Quest" />
-          <NavLink to="/my-quests" active={pathname === "/my-quests"} icon={<Shield size={14} />} label="My Quests" />
-          <a
-            href={LAB_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="nav-link nav-external"
-            title="View on Stellar Lab"
-          >
+          <NavLink to="/"          active={pathname === "/"}          icon={<ScrollText size={14} />} label="Quest Board" />
+          <NavLink to="/post"      active={pathname === "/post"}      icon={<Sword size={14} />}      label="Post Quest" />
+          <NavLink to="/my-quests" active={pathname === "/my-quests"} icon={<Shield size={14} />}     label="My Quests" />
+          {publicKey && (
+            <NavLink
+              to="/profile"
+              active={pathname.startsWith("/profile")}
+              icon={<User size={14} />}
+              label={profile?.username || "Profile"}
+            />
+          )}
+          <a href={LAB_URL} target="_blank" rel="noopener noreferrer" className="nav-link nav-external">
             <ExternalLink size={14} />
             <span>Contract</span>
           </a>
         </div>
 
-        {/* Wallet button */}
         <div className="navbar-wallet">
           {publicKey ? (
             <div className="wallet-connected">
               <span className="wallet-dot" />
-              <span className="wallet-addr">{shortenAddress(publicKey)}</span>
+              <Link to="/profile" className="wallet-addr" style={{ textDecoration: "none" }}>
+                {profile?.username || shortenAddress(publicKey)}
+              </Link>
               <button className="btn-disconnect" onClick={disconnect}>Disconnect</button>
             </div>
           ) : (
@@ -51,7 +52,6 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Testnet banner */}
       <div className="testnet-bar">
         <span className="testnet-dot" />
         STELLAR TESTNET
