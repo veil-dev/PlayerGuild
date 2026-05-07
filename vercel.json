@@ -23,4 +23,9 @@
       "destination": "/index.html"
     }
   ]
+    {
+  "buildCommand": "cd playerguild && npm install && npm run build 2>&1",
+  "outputDirectory": "playerguild/build",
+  "framework": null
+}
 }
