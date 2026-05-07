@@ -1,5 +1,6 @@
 // src/pages/QuestDetail.jsx
 import { useParams, useNavigate, Link } from "react-router-dom";
+import { useEffect } from "react";
 import {
   ArrowLeft, Coins, User, Clock, Shield, CheckCircle,
   XCircle, ExternalLink, Sword,
@@ -18,7 +19,11 @@ const USD_RATES = { XLM: 0.11, USDC: 1.00 };
 export default function QuestDetail() {
   const { id } = useParams();
   const { publicKey, connect } = useWallet();
-  const { quests, claimQuest, completeQuest, cancelQuest, loading } = useQuestStore();
+  const { quests, claimQuest, completeQuest, cancelQuest, loading, loadQuests, loaded } = useQuestStore();
+
+  useEffect(() => {
+    if (!loaded) loadQuests();
+  }, [loaded, loadQuests]);
 
   const quest = quests.find((q) => q.id === parseInt(id));
 

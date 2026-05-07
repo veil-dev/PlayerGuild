@@ -2,6 +2,8 @@
 
 > A blockchain-powered quest board where gamers post and complete paid gigs — built on Stellar.
 
+**Live Demo:** https://player-guild.vercel.app
+
 ---
 
 ## Problem

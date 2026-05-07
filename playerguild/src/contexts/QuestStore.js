@@ -1,6 +1,7 @@
 // src/contexts/QuestStore.js
 // Zustand store — manages quest state locally and syncs with contract events
 import { create } from "zustand";
+import { api } from "../utils/api";
 
 // Seed data that mirrors what a real contract fetch would return
 const SEED_QUESTS = [
@@ -73,12 +74,47 @@ const SEED_QUESTS = [
 
 let nextId = 6;
 
+function fromApiQuest(row) {
+  return {
+    id: Number(row.quest_id),
+    title: row.title,
+    description: row.description,
+    reward: parseFloat(row.reward_amount || 0).toFixed(2),
+    rewardToken: row.reward_token || "XLM",
+    game: row.game,
+    giver: row.giver_address,
+    hunter: null,
+    status: "open",
+    createdAt: row.created_at ? Number(row.created_at) * 1000 : Date.now(),
+    tags: Array.isArray(row.tags) ? row.tags : [],
+  };
+}
+
+function makeQuestId() {
+  return Date.now() + Math.floor(Math.random() * 1000);
+}
+
 export const useQuestStore = create((set, get) => ({
   quests: SEED_QUESTS,
   loading: false,
+  loaded: false,
+  error: null,
   filter: "all", // all | open | claimed | completed
 
   setFilter: (filter) => set({ filter }),
+
+  loadQuests: async () => {
+    if (get().loading) return;
+    set({ loading: true, error: null });
+    try {
+      const data = await api.getQuests({ limit: 100 });
+      const quests = (data.quests || []).map(fromApiQuest);
+      set({ quests, loaded: true, loading: false });
+    } catch (e) {
+      console.warn("Quest API load failed, using demo quests:", e);
+      set({ loaded: true, loading: false, error: e.message });
+    }
+  },
 
   getFiltered: () => {
     const { quests, filter } = get();
@@ -86,15 +122,14 @@ export const useQuestStore = create((set, get) => ({
     return quests.filter((q) => q.status === filter);
   },
 
-  // Simulate posting a quest (real version would call Soroban contract)
-  postQuest: async ({ title, description, reward, game, tags, giverKey }) => {
+  postQuest: async ({ title, description, reward, game, tags, rewardToken = "XLM", giverKey }) => {
     set({ loading: true });
-    await new Promise((r) => setTimeout(r, 1200)); // simulate tx latency
     const quest = {
-      id: nextId++,
+      id: makeQuestId(),
       title,
       description,
       reward: parseFloat(reward).toFixed(2),
+      rewardToken,
       game,
       giver: giverKey,
       hunter: null,
@@ -102,7 +137,25 @@ export const useQuestStore = create((set, get) => ({
       createdAt: Date.now(),
       tags: tags || [],
     };
-    set((s) => ({ quests: [quest, ...s.quests], loading: false }));
+
+    try {
+      await api.saveQuest({
+        quest_id: quest.id,
+        title,
+        description,
+        game,
+        tags: quest.tags,
+        reward_amount: quest.reward,
+        reward_token: rewardToken,
+        giver_address: giverKey,
+      });
+      set((s) => ({ quests: [quest, ...s.quests], loading: false }));
+    } catch (e) {
+      console.warn("Quest API save failed, keeping quest local only:", e);
+      const fallbackQuest = { ...quest, id: nextId++ };
+      set((s) => ({ quests: [fallbackQuest, ...s.quests], loading: false, error: e.message }));
+      throw e;
+    }
     return quest;
   },
 

@@ -1,5 +1,5 @@
 // src/pages/QuestBoard.jsx
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Search, SlidersHorizontal, Sword, TrendingUp } from "lucide-react";
 import { useQuestStore } from "../contexts/QuestStore";
@@ -15,8 +15,12 @@ const FILTERS = [
 ];
 
 export default function QuestBoard() {
-  const { quests, filter, setFilter, getFiltered } = useQuestStore();
+  const { quests, filter, setFilter, getFiltered, loadQuests, loaded } = useQuestStore();
   const [search, setSearch] = useState("");
+
+  useEffect(() => {
+    if (!loaded) loadQuests();
+  }, [loaded, loadQuests]);
 
   const filtered = getFiltered().filter((q) => {
     if (!search) return true;

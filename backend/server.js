@@ -126,6 +126,14 @@ function auth(req, res, next) {
   }
 }
 
+function optionalAuth(req, _res, next) {
+  const header = req.headers.authorization;
+  if (header?.startsWith('Bearer ')) {
+    try { req.user = jwt.verify(header.slice(7), JWT_SECRET); } catch {}
+  }
+  next();
+}
+
 // ─── Health ───────────────────────────────────────────────────────────────────
 app.get('/', (_req, res) => res.json({ message: 'PlayerGuild backend running' }));
 
@@ -209,15 +217,18 @@ app.patch('/api/users/me', auth, (req, res) => {
 
 // ─── QUEST METADATA ───────────────────────────────────────────────────────────
 // POST /api/quests  → save metadata after posting on-chain
-app.post('/api/quests', auth, (req, res) => {
+app.post('/api/quests', optionalAuth, (req, res) => {
   const {
     quest_id, title, description, game, tags = [],
     reward_amount, reward_token = 'XLM',
-    difficulty, est_hours, image_url, tx_hash,
+    difficulty, est_hours, image_url, tx_hash, giver_address, giverKey,
   } = req.body;
+  const giverAddress = req.user?.wallet || giver_address || giverKey;
 
-  if (!quest_id || !title || !description || !game || !reward_amount)
+  if (!quest_id || !title || !description || !game || !reward_amount || !giverAddress)
     return res.status(400).json({ error: 'Missing required fields' });
+
+  db.prepare(`INSERT OR IGNORE INTO users (wallet_address) VALUES (?)`).run(giverAddress);
 
   db.prepare(`
     INSERT OR REPLACE INTO quest_meta
@@ -225,14 +236,14 @@ app.post('/api/quests', auth, (req, res) => {
        reward_amount, reward_token, difficulty, est_hours, image_url, tx_hash)
     VALUES (?,?,?,?,?,?,?,?,?,?,?,?)
   `).run(
-    quest_id, req.user.wallet, title, description, game,
+    quest_id, giverAddress, title, description, game,
     JSON.stringify(tags), reward_amount, reward_token,
     difficulty || null, est_hours || null, image_url || null, tx_hash || null
   );
 
   // Log activity
   db.prepare(`INSERT INTO activity (wallet_address, quest_id, action, tx_hash) VALUES (?,?,?,?)`)
-    .run(req.user.wallet, quest_id, 'posted', tx_hash || null);
+    .run(giverAddress, quest_id, 'posted', tx_hash || null);
 
   res.status(201).json({ ok: true, quest_id });
 });

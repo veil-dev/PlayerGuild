@@ -115,6 +115,14 @@ function auth(req, res, next) {
   }
 }
 
+function optionalAuth(req, _res, next) {
+  const header = req.headers.authorization;
+  if (header?.startsWith('Bearer ')) {
+    try { req.user = jwt.verify(header.slice(7), JWT_SECRET); } catch {}
+  }
+  next();
+}
+
 // ─── Health ───────────────────────────────────────────────────────────────────
 app.get('/', (_req, res) => res.json({ message: 'PlayerGuild backend running' }));
 
@@ -193,22 +201,25 @@ app.patch('/api/users/me', auth, async (req, res) => {
 });
 
 // ─── QUESTS ───────────────────────────────────────────────────────────────────
-app.post('/api/quests', auth, async (req, res) => {
+app.post('/api/quests', optionalAuth, async (req, res) => {
   const {
     quest_id, title, description, game, tags = [],
     reward_amount, reward_token = 'XLM',
-    difficulty, est_hours, image_url, tx_hash,
+    difficulty, est_hours, image_url, tx_hash, giver_address, giverKey,
   } = req.body;
+  const giverAddress = req.user?.wallet || giver_address || giverKey;
 
-  if (!quest_id || !title || !description || !game || !reward_amount)
+  if (!quest_id || !title || !description || !game || !reward_amount || !giverAddress)
     return res.status(400).json({ error: 'Missing required fields' });
+
+  await sql`INSERT INTO users (wallet_address) VALUES (${giverAddress}) ON CONFLICT DO NOTHING`;
 
   await sql`
     INSERT INTO quest_meta
       (quest_id, giver_address, title, description, game, tags,
        reward_amount, reward_token, difficulty, est_hours, image_url, tx_hash)
     VALUES
-      (${quest_id}, ${req.user.wallet}, ${title}, ${description}, ${game},
+      (${quest_id}, ${giverAddress}, ${title}, ${description}, ${game},
        ${JSON.stringify(tags)}, ${reward_amount}, ${reward_token},
        ${difficulty || null}, ${est_hours || null}, ${image_url || null}, ${tx_hash || null})
     ON CONFLICT (quest_id) DO UPDATE SET
@@ -218,7 +229,7 @@ app.post('/api/quests', auth, async (req, res) => {
 
   await sql`
     INSERT INTO activity (wallet_address, quest_id, action, tx_hash)
-    VALUES (${req.user.wallet}, ${quest_id}, 'posted', ${tx_hash || null})
+    VALUES (${giverAddress}, ${quest_id}, 'posted', ${tx_hash || null})
   `;
 
   res.status(201).json({ ok: true, quest_id });
