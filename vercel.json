@@ -1,18 +1,7 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "api/index.js",
-      "use": "@vercel/node"
-    },
-    {
-      "src": "playerguild/package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "build"
-      }
-    }
-  ],
+  "buildCommand": "cd playerguild && npm run build",
+  "outputDirectory": "playerguild/build",
+  "installCommand": "cd playerguild && npm install",
   "rewrites": [
     {
       "source": "/api/:path*",
@@ -23,9 +12,4 @@
       "destination": "/index.html"
     }
   ]
-    {
-  "buildCommand": "cd playerguild && npm install && npm run build 2>&1",
-  "outputDirectory": "playerguild/build",
-  "framework": null
-}
 }
