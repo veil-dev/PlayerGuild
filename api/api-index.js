@@ -1,38 +1,14 @@
 // api/index.js  — PlayerGuild backend as a Vercel serverless function
-// Uses Neon/PostgreSQL instead of better-sqlite3
+// Uses @vercel/postgres (Neon PostgreSQL) instead of better-sqlite3
 
 const express    = require('express');
 const cors       = require('cors');
 const helmet     = require('helmet');
 const jwt        = require('jsonwebtoken');
-const { Pool }   = require('pg');
+const { sql }    = require('@vercel/postgres');
 
 const app        = express();
 const JWT_SECRET = process.env.JWT_SECRET || 'change-me-in-production';
-const DATABASE_URL =
-  process.env.DATABASE_URL ||
-  process.env.POSTGRES_URL ||
-  process.env.POSTGRES_PRISMA_URL ||
-  process.env.POSTGRES_URL_NON_POOLING;
-
-if (!DATABASE_URL) {
-  throw new Error('Missing DATABASE_URL or POSTGRES_URL for Neon/PostgreSQL');
-}
-
-const pool = new Pool({
-  connectionString: DATABASE_URL,
-  ssl: DATABASE_URL.includes('sslmode=disable') ? false : { rejectUnauthorized: false },
-});
-
-function sql(strings, ...values) {
-  let text = '';
-  strings.forEach((part, i) => {
-    text += part;
-    if (i < values.length) text += `$${i + 1}`;
-  });
-  return pool.query(text, values);
-}
-sql.query = (text, params = []) => pool.query(text, params);
 
 // ─── Schema init (runs on cold start, safe to re-run) ────────────────────────
 async function initDb() {
@@ -113,7 +89,7 @@ async function initDb() {
 }
 
 // Run schema init once per cold start
-const dbReady = initDb();
+const dbReady = initDb().catch(e => console.error('DB init failed:', e));
 
 // ─── Middleware ───────────────────────────────────────────────────────────────
 app.use(helmet());
@@ -125,15 +101,7 @@ app.use(cors({
 app.use(express.json({ limit: '2mb' }));
 
 // Ensure DB is ready before handling requests
-app.use(async (_req, res, next) => {
-  try {
-    await dbReady;
-    next();
-  } catch (e) {
-    console.error('DB init failed:', e);
-    res.status(500).json({ error: 'Database unavailable' });
-  }
-});
+app.use(async (_req, _res, next) => { await dbReady; next(); });
 
 // JWT auth middleware
 function auth(req, res, next) {

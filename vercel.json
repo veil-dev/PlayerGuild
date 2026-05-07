@@ -1,11 +1,11 @@
 {
   "buildCommand": "cd playerguild && npm run build",
   "outputDirectory": "playerguild/build",
-  "installCommand": "npm install && cd playerguild && npm install",
+  "installCommand": "cd playerguild && npm install",
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "/api/api-index.js"
+      "destination": "/api/index.js"
     },
     {
       "source": "/((?!api).*)",
