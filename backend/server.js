@@ -15,6 +15,11 @@ const JWT_SECRET = process.env.JWT_SECRET || 'change-me-in-production';
 // ─── DB Setup ─────────────────────────────────────────────────────────────────
 const db = new Database(process.env.DB_PATH || path.join(__dirname, 'playerguild.db'));
 db.pragma('journal_mode = WAL');
+
+// Migrate: add new columns if they don't exist
+['contact_number', 'facebook_url'].forEach(col => {
+  try { db.prepare(`ALTER TABLE users ADD COLUMN ${col} TEXT`).run(); } catch {}
+});
 db.pragma('foreign_keys = ON');
 
 db.exec(`
@@ -189,12 +194,12 @@ app.get('/api/users/:wallet', (req, res) => {
 
 // PATCH /api/users/me  → update own profile
 app.patch('/api/users/me', auth, (req, res) => {
-  const { username, avatar_url, bio, discord_handle } = req.body;
+  const { username, avatar_url, bio, discord_handle, contact_number, facebook_url } = req.body;
   try {
     db.prepare(`
-      UPDATE users SET username=?, avatar_url=?, bio=?, discord_handle=?
+      UPDATE users SET username=?, avatar_url=?, bio=?, discord_handle=?, contact_number=?, facebook_url=?
       WHERE wallet_address=?
-    `).run(username, avatar_url, bio, discord_handle, req.user.wallet);
+    `).run(username, avatar_url, bio, discord_handle, contact_number, facebook_url, req.user.wallet);
     res.json({ ok: true });
   } catch (e) {
     if (e.message.includes('UNIQUE')) return res.status(409).json({ error: 'Username taken' });
@@ -361,6 +366,23 @@ app.post('/api/notify', (req, res) => {
   res.json({ ok: true });
 });
 
+// POST /api/users/:wallet/rate  → rate a user directly (employer<->hunter)
+app.post('/api/users/:wallet/rate', auth, (req, res) => {
+  const { rating, comment, role, quest_id } = req.body;
+  if (!rating || !role) return res.status(400).json({ error: 'rating and role required' });
+  if (req.user.wallet === req.params.wallet) return res.status(400).json({ error: 'Cannot rate yourself' });
+  try {
+    db.prepare(`
+      INSERT INTO reviews (quest_id, reviewer, reviewee, role, rating, comment)
+      VALUES (?,?,?,?,?,?)
+    `).run(quest_id || 0, req.user.wallet, req.params.wallet, role, rating, comment || null);
+    res.status(201).json({ ok: true });
+  } catch (e) {
+    if (e.message.includes('UNIQUE')) return res.status(409).json({ error: 'Already reviewed this user for this quest' });
+    throw e;
+  }
+});
+
 // ─── ACTIVITY FEED ───────────────────────────────────────────────────────────
 // GET /api/activity?wallet=...
 app.get('/api/activity', (req, res) => {
@@ -412,4 +434,4 @@ app.get('/api/leaderboard', (_req, res) => {
 });
 
 // ─── Start ────────────────────────────────────────────────────────────────────
-app.listen(PORT, () => console.log(`PlayerGuild backend on port ${PORT}`));
+app.listen(PORT, { maxHeaderSize: 32768 }, () => console.log(`PlayerGuild backend on port ${PORT}`));

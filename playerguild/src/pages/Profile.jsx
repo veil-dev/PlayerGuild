@@ -1,9 +1,10 @@
 // src/pages/Profile.jsx
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import {
   User, Star, Sword, Shield, Edit2, Check, X,
   MessageSquare, Trophy, Clock, ExternalLink,
+  Phone, Camera,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useWallet } from "../contexts/WalletContext";
@@ -14,44 +15,61 @@ import "./Profile.css";
 export default function Profile() {
   const { wallet } = useParams();
   const navigate   = useNavigate();
-  const { publicKey, profile: myProfile, walletReady } = useWallet();
+  const { publicKey, walletReady } = useWallet();
 
   const targetWallet = wallet || publicKey;
   const isOwn        = targetWallet === publicKey;
 
-  const [user,     setUser]     = useState(null);
-  const [reviews,  setReviews]  = useState([]);
-  const [activity, setActivity] = useState([]);
-  const [loading,  setLoading]  = useState(true);
-  const [editing,  setEditing]  = useState(false);
-  const [saving,   setSaving]   = useState(false);
-  const [form,     setForm]     = useState({
+  const [user,        setUser]        = useState(null);
+  const [reviews,     setReviews]     = useState([]);
+  const [activity,    setActivity]    = useState([]);
+  const [loading,     setLoading]     = useState(true);
+  const [editing,     setEditing]     = useState(false);
+  const [saving,      setSaving]      = useState(false);
+  const [avatarMode,  setAvatarMode]  = useState("url"); // "url" | "preview"
+  const [form,        setForm]        = useState({
     username: "", bio: "", avatar_url: "", discord_handle: "",
+    contact_number: "", facebook_url: "",
   });
+
+  // Rating modal state
+  const [showRating,  setShowRating]  = useState(false);
+  const [ratingForm,  setRatingForm]  = useState({ rating: 0, comment: "", role: "hunter" });
+  const [hoveredStar, setHoveredStar] = useState(0);
+  const [submittingRating, setSubmittingRating] = useState(false);
+
+  const lastFetched = useRef(null);
 
   useEffect(() => {
     if (!walletReady) return;
     if (!targetWallet) { navigate("/"); return; }
+    if (lastFetched.current === targetWallet) return;
+    lastFetched.current = targetWallet;
     setLoading(true);
-    Promise.all([
-      api.getUser(targetWallet),
-      api.getReviews(targetWallet),
-      api.getActivity(targetWallet),
-    ])
-      .then(([u, r, a]) => {
+    api.getUser(targetWallet)
+      .then((u) => {
         setUser(u);
-        setReviews(r.reviews || []);
-        setActivity(a.activity || []);
         setForm({
           username:       u.username       || "",
           bio:            u.bio            || "",
           avatar_url:     u.avatar_url     || "",
           discord_handle: u.discord_handle || "",
+          contact_number: u.contact_number || "",
+          facebook_url:   u.facebook_url   || "",
         });
+        api.getReviews(targetWallet)
+          .then((r) => setReviews(r.reviews || []))
+          .catch((e) => console.warn("Reviews fetch failed:", e));
+        api.getActivity(targetWallet)
+          .then((a) => setActivity(a.activity || []))
+          .catch((e) => console.warn("Activity fetch failed:", e));
       })
-      .catch(() => toast.error("Failed to load profile"))
+      .catch((e) => {
+        console.error("Profile fetch failed:", e);
+        toast.error(e.message || "Failed to load profile");
+      })
       .finally(() => setLoading(false));
-  }, [targetWallet, navigate, walletReady]);
+  }, [targetWallet, walletReady, navigate]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -64,6 +82,36 @@ export default function Profile() {
       toast.error(e.message || "Failed to save");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleAvatarFile = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      setForm((f) => ({ ...f, avatar_url: ev.target.result }));
+      setAvatarMode("preview");
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSubmitRating = async () => {
+    if (!ratingForm.rating) { toast.error("Please select a star rating"); return; }
+    setSubmittingRating(true);
+    try {
+      await api.rateUser(targetWallet, ratingForm);
+      toast.success("Rating submitted!");
+      setShowRating(false);
+      setRatingForm({ rating: 0, comment: "", role: "hunter" });
+      // Refresh reviews
+      api.getReviews(targetWallet)
+        .then((r) => setReviews(r.reviews || []))
+        .catch(() => {});
+    } catch (e) {
+      toast.error(e.message || "Failed to submit rating");
+    } finally {
+      setSubmittingRating(false);
     }
   };
 
@@ -83,26 +131,23 @@ export default function Profile() {
     </div>
   );
 
-  // ─── Credibility scores ──────────────────────────────────────────────────
-  const completedAsHunter  = (user.quests_completed || 0);
-  const completedAsGiver   = (user.quests_posted    || 0);
-  const avgRating          = parseFloat(user.avg_rating) || 0;
-  const reviewCount        = parseInt(user.review_count) || 0;
+  const completedAsHunter = (user.quests_completed || 0);
+  const completedAsGiver  = (user.quests_posted    || 0);
+  const avgRating         = parseFloat(user.avg_rating) || 0;
+  const reviewCount       = parseInt(user.review_count) || 0;
 
-  // Hunter score: completions (40pts each) + rating bonus (up to 100pts)
   const hunterScore = Math.min(100,
     Math.round((completedAsHunter * 40 + avgRating * 20) / Math.max(1, completedAsHunter * 40 + 100) * 100)
   );
-
-  // Employer score: quests posted (20pts each) + avg rating they gave (up to 60pts)
   const employerScore = Math.min(100,
     Math.round((completedAsGiver * 20 + avgRating * 12) / Math.max(1, completedAsGiver * 20 + 60) * 100)
   );
-
   const overallScore = Math.round((hunterScore + employerScore) / 2);
 
   const scoreColor = (s) => s >= 80 ? "#00ff9d" : s >= 50 ? "#f9a825" : "#ef5350";
   const scoreLabel = (s) => s >= 80 ? "Excellent" : s >= 60 ? "Good" : s >= 40 ? "Fair" : "New";
+
+  const displayAvatar = editing ? form.avatar_url : user.avatar_url;
 
   return (
     <div className="page">
@@ -114,9 +159,9 @@ export default function Profile() {
           {/* Avatar + identity */}
           <div className="profile-card profile-identity">
             <div className="profile-avatar-wrap">
-              {form.avatar_url || user.avatar_url ? (
+              {displayAvatar ? (
                 <img
-                  src={editing ? form.avatar_url : user.avatar_url}
+                  src={displayAvatar}
                   alt="avatar"
                   className="profile-avatar"
                   onError={(e) => { e.target.style.display = "none"; }}
@@ -125,6 +170,17 @@ export default function Profile() {
                 <div className="profile-avatar-placeholder">
                   <User size={36} />
                 </div>
+              )}
+              {editing && (
+                <label className="profile-avatar-upload" title="Upload photo">
+                  <Camera size={14} />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    style={{ display: "none" }}
+                    onChange={handleAvatarFile}
+                  />
+                </label>
               )}
             </div>
 
@@ -137,17 +193,48 @@ export default function Profile() {
                   onChange={(e) => setForm((f) => ({ ...f, username: e.target.value }))}
                   maxLength={30}
                 />
-                <input
-                  className="profile-input"
-                  placeholder="Avatar URL"
-                  value={form.avatar_url}
-                  onChange={(e) => setForm((f) => ({ ...f, avatar_url: e.target.value }))}
-                />
+
+                {/* Avatar URL or upload */}
+                <div className="profile-avatar-row">
+                  <input
+                    className="profile-input"
+                    placeholder="Avatar URL (or upload above)"
+                    value={avatarMode === "preview" ? "" : form.avatar_url}
+                    onChange={(e) => {
+                      setAvatarMode("url");
+                      setForm((f) => ({ ...f, avatar_url: e.target.value }));
+                    }}
+                    disabled={avatarMode === "preview"}
+                  />
+                  {avatarMode === "preview" && (
+                    <button
+                      className="profile-cancel-btn"
+                      style={{ padding: "4px 8px", fontSize: 11 }}
+                      onClick={() => { setAvatarMode("url"); setForm((f) => ({ ...f, avatar_url: "" })); }}
+                    >
+                      <X size={11} /> Clear
+                    </button>
+                  )}
+                </div>
+
                 <input
                   className="profile-input"
                   placeholder="Discord handle (e.g. user#1234)"
                   value={form.discord_handle}
                   onChange={(e) => setForm((f) => ({ ...f, discord_handle: e.target.value }))}
+                />
+                <input
+                  className="profile-input profile-input-icon"
+                  placeholder="Contact number"
+                  value={form.contact_number}
+                  onChange={(e) => setForm((f) => ({ ...f, contact_number: e.target.value }))}
+                  maxLength={20}
+                />
+                <input
+                  className="profile-input profile-input-icon"
+                  placeholder="Facebook URL or username"
+                  value={form.facebook_url}
+                  onChange={(e) => setForm((f) => ({ ...f, facebook_url: e.target.value }))}
                 />
                 <textarea
                   className="profile-input profile-bio-input"
@@ -172,11 +259,35 @@ export default function Profile() {
                   {user.username || shortenAddress(targetWallet)}
                 </div>
                 {user.bio && <p className="profile-bio">{user.bio}</p>}
-                {user.discord_handle && (
-                  <div className="profile-discord">
-                    <MessageSquare size={12} /> {user.discord_handle}
-                  </div>
-                )}
+
+                <div className="profile-socials">
+                  {user.discord_handle && (
+                    <div className="profile-social-row">
+                      <MessageSquare size={12} />
+                      <span>{user.discord_handle}</span>
+                    </div>
+                  )}
+                  {user.contact_number && (
+                    <div className="profile-social-row">
+                      <Phone size={12} />
+                      <span>{user.contact_number}</span>
+                    </div>
+                  )}
+                  {user.facebook_url && (
+                    <div className="profile-social-row">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+                      <a
+                        href={user.facebook_url.startsWith("http") ? user.facebook_url : `https://facebook.com/${user.facebook_url}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="profile-social-link"
+                      >
+                        {user.facebook_url.replace(/^https?:\/\/(www\.)?facebook\.com\//, "")}
+                      </a>
+                    </div>
+                  )}
+                </div>
+
                 <a
                   href={`${EXPLORER_URL}/account/${targetWallet}`}
                   target="_blank"
@@ -186,11 +297,18 @@ export default function Profile() {
                   <ExternalLink size={11} />
                   {shortenAddress(targetWallet)}
                 </a>
-                {isOwn && (
-                  <button className="profile-edit-btn" onClick={() => setEditing(true)}>
-                    <Edit2 size={13} /> Edit Profile
-                  </button>
-                )}
+
+                <div className="profile-action-row">
+                  {isOwn ? (
+                    <button className="profile-edit-btn" onClick={() => setEditing(true)}>
+                      <Edit2 size={13} /> Edit Profile
+                    </button>
+                  ) : publicKey && (
+                    <button className="profile-rate-btn" onClick={() => setShowRating(true)}>
+                      <Star size={13} /> Rate User
+                    </button>
+                  )}
+                </div>
               </>
             )}
           </div>
@@ -199,11 +317,11 @@ export default function Profile() {
           <div className="profile-card">
             <div className="profile-card-title">Stats</div>
             <div className="profile-stats">
-              <StatRow icon={<Sword size={13} />}  label="Quests Posted"    value={user.quests_posted    || 0} />
-              <StatRow icon={<Shield size={13} />} label="Quests Claimed"   value={user.quests_claimed   || 0} />
-              <StatRow icon={<Trophy size={13} />} label="Quests Completed" value={user.quests_completed || 0} />
-              <StatRow icon={<Star size={13} />}   label="Avg Rating"       value={avgRating ? `${avgRating} / 5` : "—"} />
-              <StatRow icon={<MessageSquare size={13} />} label="Reviews"   value={reviewCount} />
+              <StatRow icon={<Sword size={13} />}        label="Quests Posted"    value={user.quests_posted    || 0} />
+              <StatRow icon={<Shield size={13} />}       label="Quests Claimed"   value={user.quests_claimed   || 0} />
+              <StatRow icon={<Trophy size={13} />}       label="Quests Completed" value={user.quests_completed || 0} />
+              <StatRow icon={<Star size={13} />}         label="Avg Rating"       value={avgRating ? `${avgRating} / 5` : "—"} />
+              <StatRow icon={<MessageSquare size={13} />} label="Reviews"         value={reviewCount} />
             </div>
           </div>
         </div>
@@ -215,7 +333,6 @@ export default function Profile() {
           <div className="profile-card">
             <div className="profile-card-title">Credibility Score</div>
             <div className="cred-scores">
-
               <CredScore
                 label="Overall"
                 score={overallScore}
@@ -223,9 +340,7 @@ export default function Profile() {
                 badge={scoreLabel(overallScore)}
                 desc="Combined hunter + employer reputation"
               />
-
               <div className="cred-divider" />
-
               <CredScore
                 label="As Hunter"
                 icon={<Shield size={14} />}
@@ -234,7 +349,6 @@ export default function Profile() {
                 badge={scoreLabel(hunterScore)}
                 desc={`${completedAsHunter} quests completed`}
               />
-
               <CredScore
                 label="As Employer"
                 icon={<Sword size={14} />}
@@ -263,7 +377,7 @@ export default function Profile() {
                         <span className="review-quest">
                           {r.quest_title
                             ? <Link to={`/quest/${r.quest_id}`} className="review-quest-link">{r.quest_title}</Link>
-                            : `Quest #${r.quest_id}`}
+                            : r.quest_id > 0 ? `Quest #${r.quest_id}` : "Direct rating"}
                         </span>
                       </div>
                       <StarRating value={r.rating} />
@@ -309,6 +423,83 @@ export default function Profile() {
 
         </div>
       </div>
+
+      {/* ── Rating Modal ── */}
+      {showRating && (
+        <div className="rating-overlay" onClick={() => setShowRating(false)}>
+          <div className="rating-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="rating-modal-header">
+              <span>Rate {user.username || shortenAddress(targetWallet)}</span>
+              <button className="rating-close" onClick={() => setShowRating(false)}><X size={16} /></button>
+            </div>
+
+            <div className="rating-modal-body">
+              {/* Role selector */}
+              <div className="rating-field">
+                <label className="rating-label">You are rating them as</label>
+                <div className="rating-role-row">
+                  <button
+                    className={`rating-role-btn ${ratingForm.role === "hunter" ? "active" : ""}`}
+                    onClick={() => setRatingForm((f) => ({ ...f, role: "hunter" }))}
+                  >
+                    🛡 Hunter
+                  </button>
+                  <button
+                    className={`rating-role-btn ${ratingForm.role === "giver" ? "active" : ""}`}
+                    onClick={() => setRatingForm((f) => ({ ...f, role: "giver" }))}
+                  >
+                    ⚔ Employer
+                  </button>
+                </div>
+              </div>
+
+              {/* Star picker */}
+              <div className="rating-field">
+                <label className="rating-label">Rating</label>
+                <div className="rating-stars">
+                  {[1, 2, 3, 4, 5].map((s) => (
+                    <Star
+                      key={s}
+                      size={28}
+                      className="rating-star"
+                      fill={(hoveredStar || ratingForm.rating) >= s ? "#f9a825" : "none"}
+                      stroke={(hoveredStar || ratingForm.rating) >= s ? "#f9a825" : "#4B5563"}
+                      onMouseEnter={() => setHoveredStar(s)}
+                      onMouseLeave={() => setHoveredStar(0)}
+                      onClick={() => setRatingForm((f) => ({ ...f, rating: s }))}
+                    />
+                  ))}
+                  <span className="rating-star-label">
+                    {["", "Poor", "Fair", "Good", "Great", "Excellent"][hoveredStar || ratingForm.rating] || ""}
+                  </span>
+                </div>
+              </div>
+
+              {/* Comment */}
+              <div className="rating-field">
+                <label className="rating-label">Comment (optional)</label>
+                <textarea
+                  className="profile-input"
+                  placeholder="Share your experience working with this person..."
+                  value={ratingForm.comment}
+                  onChange={(e) => setRatingForm((f) => ({ ...f, comment: e.target.value }))}
+                  rows={3}
+                  maxLength={300}
+                />
+              </div>
+
+              <button
+                className="profile-save-btn"
+                style={{ width: "100%", justifyContent: "center" }}
+                onClick={handleSubmitRating}
+                disabled={submittingRating || !ratingForm.rating}
+              >
+                <Star size={14} /> {submittingRating ? "Submitting..." : "Submit Rating"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

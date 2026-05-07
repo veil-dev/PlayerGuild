@@ -1,7 +1,7 @@
 // src/utils/api.js
 // Central API client — all backend calls go through here
 
-const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
+const BASE_URL = process.env.REACT_APP_API_URL || '';
 
 // ─── Token storage ────────────────────────────────────────────────────────────
 export function getToken()        { return localStorage.getItem('pg_token'); }
@@ -9,10 +9,13 @@ export function setToken(t)       { localStorage.setItem('pg_token', t); }
 export function clearToken()      { localStorage.removeItem('pg_token'); }
 
 // ─── Core fetch wrapper ───────────────────────────────────────────────────────
+const PUBLIC_PATHS = ['/api/auth/', '/api/users/', '/api/quests', '/api/leaderboard', '/api/activity'];
+
 async function request(method, path, body) {
   const headers = { 'Content-Type': 'application/json' };
   const token = getToken();
-  if (token) headers['Authorization'] = `Bearer ${token}`;
+  const isPublic = PUBLIC_PATHS.some(p => path.startsWith(p)) && method === 'GET';
+  if (token && !isPublic) headers['Authorization'] = `Bearer ${token}`;
 
   const res = await fetch(`${BASE_URL}${path}`, {
     method,
@@ -20,8 +23,17 @@ async function request(method, path, body) {
     body: body ? JSON.stringify(body) : undefined,
   });
 
+  const contentType = res.headers.get('content-type') || '';
+  if (!contentType.includes('application/json')) {
+    // Got HTML or plain text — almost always a proxy/routing misconfiguration
+    const text = await res.text();
+    throw new Error(
+      `Server returned non-JSON response (${res.status}):\n${text.slice(0, 200)}`
+    );
+  }
+
   const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'Request failed');
+  if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
   return data;
 }
 
@@ -77,4 +89,7 @@ export const api = {
   // ─── Activity & Leaderboard ───────────────────────────────────────────────
   getActivity:    (wallet) => get(`/api/activity${wallet ? '?wallet=' + wallet : ''}`),
   getLeaderboard: ()       => get('/api/leaderboard'),
+
+  // ─── Ratings ──────────────────────────────────────────────────────────────
+  rateUser: (wallet, data) => post(`/api/users/${wallet}/rate`, data),
 };
