@@ -424,5 +424,10 @@ app.get('/api/leaderboard', async (_req, res) => {
   res.json({ leaderboard: rows });
 });
 
+app.use((err, _req, res, _next) => {
+  console.error('API error:', err);
+  res.status(500).json({ error: err.message || 'Internal Server Error' });
+});
+
 // ─── Export for Vercel ────────────────────────────────────────────────────────
 module.exports = app;

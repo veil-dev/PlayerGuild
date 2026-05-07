@@ -91,7 +91,7 @@ function fromApiQuest(row) {
 }
 
 function makeQuestId() {
-  return Date.now() + Math.floor(Math.random() * 1000);
+  return Math.floor(100000000 + Math.random() * 1900000000);
 }
 
 export const useQuestStore = create((set, get) => ({

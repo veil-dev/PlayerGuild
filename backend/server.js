@@ -444,5 +444,10 @@ app.get('/api/leaderboard', (_req, res) => {
   res.json({ leaderboard: rows });
 });
 
+app.use((err, _req, res, _next) => {
+  console.error('API error:', err);
+  res.status(500).json({ error: err.message || 'Internal Server Error' });
+});
+
 // ─── Start ────────────────────────────────────────────────────────────────────
 app.listen(PORT, { maxHeaderSize: 32768 }, () => console.log(`PlayerGuild backend on port ${PORT}`));
