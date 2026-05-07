@@ -285,7 +285,7 @@ export default function Profile() {
                   {user.facebook_url && (
                     <div className="profile-social-row">
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
-                      
+                      <a
                         href={user.facebook_url.startsWith("http") ? user.facebook_url : `https://facebook.com/${user.facebook_url}`}
                         target="_blank"
                         rel="noreferrer"
@@ -297,7 +297,7 @@ export default function Profile() {
                   )}
                 </div>
 
-                
+                <a
                   href={`${EXPLORER_URL}/account/${targetWallet}`}
                   target="_blank"
                   rel="noreferrer"
