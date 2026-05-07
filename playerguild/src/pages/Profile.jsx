@@ -26,13 +26,12 @@ export default function Profile() {
   const [loading,     setLoading]     = useState(true);
   const [editing,     setEditing]     = useState(false);
   const [saving,      setSaving]      = useState(false);
-  const [avatarMode,  setAvatarMode]  = useState("url"); // "url" | "preview"
+  const [avatarMode,  setAvatarMode]  = useState("url");
   const [form,        setForm]        = useState({
     username: "", bio: "", avatar_url: "", discord_handle: "",
     contact_number: "", facebook_url: "",
   });
 
-  // Rating modal state
   const [showRating,  setShowRating]  = useState(false);
   const [ratingForm,  setRatingForm]  = useState({ rating: 0, comment: "", role: "hunter" });
   const [hoveredStar, setHoveredStar] = useState(0);
@@ -42,7 +41,7 @@ export default function Profile() {
 
   useEffect(() => {
     if (!walletReady) return;
-    if (!targetWallet) { navigate("/"); return; }
+    if (!targetWallet) return;
     if (lastFetched.current === targetWallet) return;
     lastFetched.current = targetWallet;
     setLoading(true);
@@ -104,7 +103,6 @@ export default function Profile() {
       toast.success("Rating submitted!");
       setShowRating(false);
       setRatingForm({ rating: 0, comment: "", role: "hunter" });
-      // Refresh reviews
       api.getReviews(targetWallet)
         .then((r) => setReviews(r.reviews || []))
         .catch(() => {});
@@ -115,7 +113,19 @@ export default function Profile() {
     }
   };
 
-  if (!targetWallet) return null;
+  if (!walletReady) return (
+    <div className="page profile-loading">
+      <div className="profile-spinner" />
+    </div>
+  );
+
+  if (!targetWallet) return (
+    <div className="page" style={{ textAlign: "center", paddingTop: "4rem" }}>
+      <p style={{ color: "var(--text-muted)", fontFamily: "var(--font-mono)", fontSize: 13 }}>
+        Connect your wallet to view your profile.
+      </p>
+    </div>
+  );
 
   if (loading) return (
     <div className="page profile-loading">
@@ -194,7 +204,6 @@ export default function Profile() {
                   maxLength={30}
                 />
 
-                {/* Avatar URL or upload */}
                 <div className="profile-avatar-row">
                   <input
                     className="profile-input"
@@ -276,7 +285,7 @@ export default function Profile() {
                   {user.facebook_url && (
                     <div className="profile-social-row">
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
-                      <a
+                      
                         href={user.facebook_url.startsWith("http") ? user.facebook_url : `https://facebook.com/${user.facebook_url}`}
                         target="_blank"
                         rel="noreferrer"
@@ -288,7 +297,7 @@ export default function Profile() {
                   )}
                 </div>
 
-                <a
+                
                   href={`${EXPLORER_URL}/account/${targetWallet}`}
                   target="_blank"
                   rel="noreferrer"
@@ -317,11 +326,11 @@ export default function Profile() {
           <div className="profile-card">
             <div className="profile-card-title">Stats</div>
             <div className="profile-stats">
-              <StatRow icon={<Sword size={13} />}        label="Quests Posted"    value={user.quests_posted    || 0} />
-              <StatRow icon={<Shield size={13} />}       label="Quests Claimed"   value={user.quests_claimed   || 0} />
-              <StatRow icon={<Trophy size={13} />}       label="Quests Completed" value={user.quests_completed || 0} />
-              <StatRow icon={<Star size={13} />}         label="Avg Rating"       value={avgRating ? `${avgRating} / 5` : "—"} />
-              <StatRow icon={<MessageSquare size={13} />} label="Reviews"         value={reviewCount} />
+              <StatRow icon={<Sword size={13} />}         label="Quests Posted"    value={user.quests_posted    || 0} />
+              <StatRow icon={<Shield size={13} />}        label="Quests Claimed"   value={user.quests_claimed   || 0} />
+              <StatRow icon={<Trophy size={13} />}        label="Quests Completed" value={user.quests_completed || 0} />
+              <StatRow icon={<Star size={13} />}          label="Avg Rating"       value={avgRating ? `${avgRating} / 5` : "—"} />
+              <StatRow icon={<MessageSquare size={13} />} label="Reviews"          value={reviewCount} />
             </div>
           </div>
         </div>
@@ -434,7 +443,6 @@ export default function Profile() {
             </div>
 
             <div className="rating-modal-body">
-              {/* Role selector */}
               <div className="rating-field">
                 <label className="rating-label">You are rating them as</label>
                 <div className="rating-role-row">
@@ -453,7 +461,6 @@ export default function Profile() {
                 </div>
               </div>
 
-              {/* Star picker */}
               <div className="rating-field">
                 <label className="rating-label">Rating</label>
                 <div className="rating-stars">
@@ -475,7 +482,6 @@ export default function Profile() {
                 </div>
               </div>
 
-              {/* Comment */}
               <div className="rating-field">
                 <label className="rating-label">Comment (optional)</label>
                 <textarea
